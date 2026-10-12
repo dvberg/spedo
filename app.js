@@ -3,12 +3,15 @@ window.SAMC = window.SAMC || {};
 SAMC.config = {
     storage: {
         layout: 'spedo_settings',
+        variant: 'spedo_layout',
         syncCode: 'spedo_sync_code',
         playlist: 'samc_music_audio_playlist_v2'
     },
     peerPrefix: 'samc-spedo-',
     relayMs: 16,
     scale: { min: 0.5, max: 2, step: 0.1 },
+    layouts: ['a', 'b', 'c', 'd'],
+    defaultLayout: 'b',
     peer: {
         config: {
             iceServers: [
@@ -299,6 +302,9 @@ SAMC.config = {
 
             loadLayout();
             applyLayout();
+            let saved = null;
+            try { saved = localStorage.getItem(cfg.storage.variant); } catch (_) {}
+            API.setLayout(new URLSearchParams(location.search).get('layout') || saved || cfg.defaultLayout);
             SAMC.gauge.init();
             setupDrag();
 
@@ -323,6 +329,14 @@ SAMC.config = {
             speedMode = clamp(Math.trunc(num(mode, 1)), 0, SPEED_MODES.length - 1);
             render();
         },
+        setLayout(name) {
+            const key = String(name || '').toLowerCase();
+            const next = cfg.layouts.includes(key) ? key : cfg.defaultLayout;
+            document.body.setAttribute('data-layout', next);
+            try { localStorage.setItem(cfg.storage.variant, next); } catch (_) {}
+            return next;
+        },
+        getLayout: () => document.body.getAttribute('data-layout'),
         setSyncHidden(hidden, text) {
             el.root.classList.toggle('sync-hidden', hidden);
             el.pill.classList.toggle('hide', !hidden);
@@ -942,7 +956,9 @@ SAMC.config = {
         setRightIndicator: setter('rightIndicator'),
         setSeatbelts: setter('seatbelt'),
         setOdometer: setter('odometer'),
-        setSpeedMode: mode => SAMC.hud.setSpeedMode(mode)
+        setSpeedMode: mode => SAMC.hud.setSpeedMode(mode),
+        setLayout: name => SAMC.hud.setLayout(name),
+        getLayout: () => SAMC.hud.getLayout()
     };
 
     ['setEngine', 'setSpeed', 'setRPM', 'setFuel', 'setHealth', 'setGear', 'setHeadlights',

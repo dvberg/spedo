@@ -1,0 +1,13 @@
+/* Layout B: Center - RPM di atas, gear dan speed sejajar di tengah, bar dan indikator di bawah */
+body[data-layout="b"] .cluster { width: 320px; padding: 12px 14px 14px; }
+body[data-layout="b"] .rpm { margin-bottom: 12px; }
+body[data-layout="b"] .main-row { align-items: center; justify-content: space-between; gap: 12px; }
+body[data-layout="b"] .gear { width: 72px; height: 72px; }
+body[data-layout="b"] #gear-display { font-size: 44px; }
+body[data-layout="b"] .readout { flex: 1; align-items: center; }
+body[data-layout="b"] #speed-display { font-size: 72px; }
+body[data-layout="b"] .readout .unit,
+body[data-layout="b"] .readout .odo { margin-top: 4px; }
+body[data-layout="b"] .stats { margin-top: 12px; }
+body[data-layout="b"] .indicators { margin-top: 12px; padding-top: 10px; }
+body[data-layout="b"] .ind svg { width: 18px; height: 18px; }

@@ -1,0 +1,10 @@
+/* Layout C: Wide - bar lebar di atas, angka speed sangat besar, cocok untuk layar lebar */
+body[data-layout="c"] .cluster { width: 380px; padding: 10px 16px 12px; }
+body[data-layout="c"] .rpm { margin-bottom: 10px; }
+body[data-layout="c"] .seg-bar { height: 14px; }
+body[data-layout="c"] .main-row { align-items: center; gap: 16px; }
+body[data-layout="c"] .gear { width: 56px; height: 56px; }
+body[data-layout="c"] #speed-display { font-size: 84px; line-height: .8; }
+body[data-layout="c"] .speed-track { margin: 12px 0; }
+body[data-layout="c"] .stats { gap: 16px; }
+body[data-layout="c"] .indicators { margin-top: 12px; padding-top: 10px; justify-content: space-around; }

@@ -1,0 +1,10 @@
+/* Layout A: Compact - satu kolom ringkas, fuel/health tipis di bawah */
+body[data-layout="a"] .cluster { width: 280px; padding: 8px 10px 10px; }
+body[data-layout="a"] .rpm { margin-bottom: 8px; }
+body[data-layout="a"] .main-row { gap: 10px; }
+body[data-layout="a"] .gear { width: 48px; height: 48px; }
+body[data-layout="a"] #gear-display { font-size: 30px; }
+body[data-layout="a"] #speed-display { font-size: 48px; }
+body[data-layout="a"] .speed-track { display: none; }
+body[data-layout="a"] .stats { margin-top: 8px; gap: 10px; }
+body[data-layout="a"] .indicators { margin-top: 8px; padding-top: 6px; }
