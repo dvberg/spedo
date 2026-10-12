@@ -122,7 +122,6 @@
     function setScale(s) {
         layout.scale = Math.round(clamp(s, cfg.scale.min, cfg.scale.max) * 10) / 10;
         applyLayout();
-        SAMC.gauge.setScale(layout.scale);
         saveLayout();
     }
 
@@ -130,7 +129,6 @@
         layout.scale = 1;
         layout.left = layout.top = null;
         applyLayout();
-        SAMC.gauge.setScale(1);
         try { localStorage.removeItem(cfg.storage.layout); } catch (_) {}
     }
 
@@ -175,7 +173,7 @@
 
             loadLayout();
             applyLayout();
-            SAMC.gauge.init($('gauge'), layout.scale);
+            SAMC.gauge.init();
             setupDrag();
 
             $('btn-scale-up').addEventListener('click', () => setScale(layout.scale + cfg.scale.step));
