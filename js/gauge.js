@@ -1,137 +1,101 @@
 (function () {
-    const DEG = Math.PI / 180;
-    const W = 310, H = 180, MIN = -110, MAX = 110;
-    const S = { cx: 110, cy: 112, r: 84 };
-    const R = { cx: 235, cy: 90, r: 56 };
+    const W = 310, H = 180;
     const C = {
         white: '#f4f6f8',
         amber: '#ffc400',
         red: '#ff3d4a',
-        track: 'rgba(255,255,255,.1)',
-        tick: 'rgba(255,255,255,.4)',
-        tickMajor: 'rgba(255,255,255,.8)',
-        face: 'rgba(5,7,10,.55)'
+        green: '#2be08f',
+        off: 'rgba(255,255,255,.08)',
+        dim: 'rgba(255,255,255,.45)',
+        line: 'rgba(255,255,255,.14)'
     };
-    const SPEED_ZONES = [22, 66];
-    const RPM_ZONES = [50, 70];
+    const RPM = { x: 8, y: 10, w: 294, h: 9, count: 22, max: 11 };
+    const SPD = { x: 70, y: 138, w: 232, h: 8, count: 40, max: 200 };
+    const GEAR = { x: 8, y: 44, w: 56, h: 76 };
 
-    let canvas, ctx, scale = 1, gear = 0, dpr = 1;
-    let speed = MIN, targetSpeed = MIN, rpm = MIN, targetRpm = MIN;
+    let canvas, ctx, scale = 1, dpr = 1, gear = 0;
+    let speed = 0, targetSpeed = 0, rpm = 0, targetRpm = 0;
     let animating = false, lastFrame = 0;
 
     const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-    const angle = deg => (deg - 90) * DEG;
-    const point = (g, radius, deg) => [g.cx + radius * Math.sin(deg * DEG), g.cy - radius * Math.cos(deg * DEG)];
     const font = (size, weight = '700') => `${weight} ${size}px Formula1, sans-serif`;
 
-    function arc(c, g, from, to, color, width) {
-        if (to <= from) return;
+    function chamfer(c, x, y, w, h, k) {
         c.beginPath();
-        c.arc(g.cx, g.cy, g.r, angle(from), angle(to));
-        c.lineWidth = width;
-        c.strokeStyle = color;
-        c.stroke();
+        c.moveTo(x + k, y);
+        c.lineTo(x + w, y);
+        c.lineTo(x + w, y + h - k);
+        c.lineTo(x + w - k, y + h);
+        c.lineTo(x, y + h);
+        c.lineTo(x, y + k);
+        c.closePath();
     }
 
-    function tick(c, g, deg, r1, r2, color, width) {
-        const a = point(g, r1, deg), b = point(g, r2, deg);
-        c.beginPath();
-        c.moveTo(a[0], a[1]);
-        c.lineTo(b[0], b[1]);
-        c.lineWidth = width;
-        c.strokeStyle = color;
-        c.stroke();
+    function segments(c, g, frac, colorAt) {
+        const pitch = g.w / g.count;
+        const lit = Math.round(clamp(frac, 0, 1) * g.count);
+        for (let i = 0; i < g.count; i++) {
+            c.fillStyle = i < lit ? colorAt(i / g.count) : C.off;
+            c.fillRect(g.x + i * pitch, g.y, pitch - 1.6, g.h);
+        }
     }
 
-    function label(c, g, radius, deg, text, size, color) {
-        const p = point(g, radius, deg);
-        c.font = font(size);
-        c.fillStyle = color;
-        c.fillText(text, p[0], p[1]);
-    }
-
-    function face(c, g, radius) {
-        c.beginPath();
-        c.arc(g.cx, g.cy, radius, 0, Math.PI * 2);
-        c.fillStyle = C.face;
+    function drawPanel(c) {
+        chamfer(c, 0, 0, W, H, 12);
+        c.fillStyle = 'rgba(6,8,11,.5)';
         c.fill();
-    }
-
-    function progress(c, g, value, width, zones) {
-        const [z1, z2] = zones;
-        const v = Math.min(value, MAX);
-        arc(c, g, MIN, Math.min(v, z1), C.white, width);
-        arc(c, g, z1, Math.min(v, z2), C.amber, width);
-        arc(c, g, z2, v, C.red, width);
-    }
-
-    function marker(c, g, deg, color, inner, outer) {
-        c.save();
-        c.shadowColor = color;
-        c.shadowBlur = 8;
-        tick(c, g, deg, inner, outer, color, 2.5);
-        c.restore();
-    }
-
-    function drawSpeed(c) {
-        face(c, S, S.r + 12);
-        arc(c, S, MIN, MAX, C.track, 6);
-        c.save();
-        c.shadowColor = 'rgba(255,196,0,.5)';
-        c.shadowBlur = 6;
-        progress(c, S, speed, 6, SPEED_ZONES);
-        c.restore();
-        for (let v = 0; v <= 200; v += 10) {
-            const deg = v * 1.1 + MIN;
-            const major = v % 20 === 0;
-            tick(c, S, deg, S.r - 8, S.r - (major ? 14 : 11), major ? C.tickMajor : C.tick, major ? 1.6 : 1);
-        }
-        c.font = font(7);
-        c.textAlign = 'center';
-        c.textBaseline = 'middle';
-        for (let v = 0; v <= 200; v += 20) {
-            label(c, S, S.r - 24, v * 1.1 + MIN, String(v), 7, C.white);
-        }
-        marker(c, S, speed, C.white, S.r - 10, S.r + 2);
+        c.fillStyle = C.amber;
+        c.fillRect(0, 0, 36, 2);
     }
 
     function drawRpm(c) {
-        face(c, R, R.r + 10);
-        arc(c, R, MIN, MAX, C.track, 4);
-        progress(c, R, rpm, 4, RPM_ZONES);
-        for (let v = 0; v <= 11; v++) {
-            tick(c, R, v * 20 + MIN, R.r - 6, R.r - (v % 2 ? 9 : 10), C.tick, 1);
-        }
+        segments(c, RPM, rpm / RPM.max, t => t >= 0.82 ? C.red : t >= 0.64 ? C.amber : C.white);
+        c.font = font(6.5);
         c.textAlign = 'center';
-        c.textBaseline = 'middle';
-        for (let v = 2; v <= 11; v += 2) {
-            label(c, R, R.r - 19, v * 20 + MIN, String(v), 6.5, v >= 9 ? C.red : 'rgba(255,255,255,.55)');
+        c.textBaseline = 'top';
+        for (let v = 2; v <= 10; v += 2) {
+            c.fillStyle = v >= 8 ? C.red : C.dim;
+            c.fillText(String(v), RPM.x + (v / RPM.max) * RPM.w, RPM.y + RPM.h + 4);
         }
-        marker(c, R, rpm, C.white, R.r - 8, R.r + 1);
     }
 
     function drawGear(c) {
-        const text = gear === 0 ? 'N' : gear < 0 ? 'R' : String(gear);
-        c.save();
-        c.translate(S.cx, S.cy - 16);
-        c.transform(1, 0, -0.2, 1, 0, 0);
-        c.font = font(26, '800');
+        chamfer(c, GEAR.x, GEAR.y, GEAR.w, GEAR.h, 8);
+        c.fillStyle = 'rgba(255,255,255,.04)';
+        c.fill();
+        c.strokeStyle = C.line;
+        c.lineWidth = 1;
+        c.stroke();
+        const cx = GEAR.x + GEAR.w / 2;
+        c.font = font(44, '800');
         c.textAlign = 'center';
         c.textBaseline = 'middle';
-        c.fillStyle = C.white;
-        c.shadowColor = 'rgba(0,0,0,.6)';
-        c.shadowBlur = 4;
-        c.fillText(text, 0, 0);
-        c.restore();
+        c.fillStyle = gear < 0 ? C.red : gear === 0 ? C.amber : C.white;
+        c.fillText(gear === 0 ? 'N' : gear < 0 ? 'R' : String(gear), cx, GEAR.y + GEAR.h * 0.42);
+        c.font = font(6, '700');
+        c.fillStyle = C.dim;
+        c.fillText('GEAR', cx, GEAR.y + GEAR.h - 10);
+    }
+
+    function drawSpeed(c) {
+        segments(c, SPD, speed / SPD.max, t => t >= 0.8 ? C.red : t >= 0.5 ? C.amber : C.green);
+        c.font = font(6);
+        c.textAlign = 'center';
+        c.textBaseline = 'top';
+        for (let v = 0; v <= 200; v += 50) {
+            c.fillStyle = C.dim;
+            c.fillText(String(v), SPD.x + (v / SPD.max) * SPD.w, SPD.y + SPD.h + 4);
+        }
     }
 
     function render() {
         if (!ctx) return;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, W, H);
+        drawPanel(ctx);
         drawRpm(ctx);
-        drawSpeed(ctx);
         drawGear(ctx);
+        drawSpeed(ctx);
     }
 
     function frame(now) {
@@ -140,7 +104,7 @@
         const ease = 1 - Math.exp(-8 * dt);
         speed += (targetSpeed - speed) * ease;
         rpm += (targetRpm - rpm) * ease;
-        const moving = Math.abs(targetSpeed - speed) > 0.1 || Math.abs(targetRpm - rpm) > 0.1;
+        const moving = Math.abs(targetSpeed - speed) > 0.1 || Math.abs(targetRpm - rpm) > 0.01;
         render();
         if (moving) requestAnimationFrame(frame);
         else animating = false;
@@ -172,8 +136,8 @@
         },
         setScale(value) { scale = value; if (canvas) resize(); },
         redraw() { if (canvas) resize(); },
-        setSpeedMph(value) { targetSpeed = clamp(value, 0, 200) * 1.1 + MIN; kick(); },
-        setRpm(value) { targetRpm = clamp(value * 10 * 20 + MIN, MIN, MAX); kick(); },
+        setSpeedMph(value) { targetSpeed = clamp(value, 0, SPD.max); kick(); },
+        setRpm(value) { targetRpm = clamp(value * 10, 0, RPM.max); kick(); },
         setGear(value) { gear = value; kick(); }
     };
 })();
