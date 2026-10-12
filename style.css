@@ -78,17 +78,22 @@ button { font-family: inherit; cursor: pointer; border: 0; color: inherit; }
 .ind-arrow.on svg { fill: var(--green); }
 .ind-lights.on svg { fill: var(--blue); }
 
-.mask-icon {
+.css-icon {
     width: 14px;
     height: 14px;
+    position: relative;
+    display: block;
     background: var(--green);
-    -webkit-mask: var(--icon) no-repeat center / contain;
-    mask: var(--icon) no-repeat center / contain;
     transition: background-color .2s;
 }
-.ind-belt.on .mask-icon { background: var(--red); }
-.ind-engine .mask-icon { background: var(--red); }
-.ind-engine.on .mask-icon { background: var(--green); }
+.belt-icon { width: 5px; height: 14px; margin: 0 4px; border-radius: 2px; transform: rotate(-34deg); }
+.belt-icon::after { content: ''; position: absolute; width: 9px; height: 3px; right: -6px; bottom: 1px; border-radius: 2px; background: inherit; }
+.engine-icon { width: 13px; height: 9px; margin-top: 3px; border-radius: 2px; color: var(--red); background: currentColor; }
+.engine-icon::before { content: ''; position: absolute; width: 3px; height: 4px; left: -3px; top: 2px; border-radius: 1px; background: currentColor; box-shadow: 15px 0 0 -1px currentColor; }
+.engine-icon::after { content: ''; position: absolute; width: 5px; height: 3px; left: 4px; top: -3px; border-radius: 1px 1px 0 0; background: currentColor; }
+.ind-belt.on .belt-icon { background: var(--red); }
+.ind-engine .engine-icon { background: var(--red); }
+.ind-engine.on .engine-icon { color: var(--green); background: currentColor; }
 
 .blink { animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: .2; } }
