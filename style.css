@@ -133,7 +133,6 @@ input { font-family: inherit; }
 .ind svg { width: 16px; height: 16px; fill: rgba(255, 255, 255, .14); }
 .ind-arrow.on svg { fill: var(--green); }
 .ind-lights.on svg { fill: var(--blue); }
-.ind-arrow.blink svg, .ind-arrow.on svg { animation: blink 1s steps(1) infinite; }
 .chip {
     padding: 3px 5px;
     border: 1px solid var(--line);
