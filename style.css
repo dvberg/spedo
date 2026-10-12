@@ -89,7 +89,7 @@ input { font-family: inherit; }
 .seg.on { background: var(--white); }
 .seg.on.warn { background: var(--amber); }
 .seg.on.hot { background: var(--red); box-shadow: 0 0 6px rgba(255, 59, 78, .6); }
-.rpm-scale { display: flex; justify-content: space-between; margin-top: 3px; font-size: 6.5px; color: var(--dim); }
+.rpm-scale { display: flex; justify-content: space-between; margin-top: 3px; font-size: 8px; color: var(--dim); }
 .rpm-scale .hot { color: var(--red); }
 
 /* Gear + speed */
@@ -107,15 +107,15 @@ input { font-family: inherit; }
 .readout { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; }
 #speed-display { font-size: 60px; font-weight: 700; line-height: .85; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
 .unit { margin-top: 4px; font-size: 8px; font-weight: 700; letter-spacing: 3px; color: var(--amber); }
-.odo { margin-top: 4px; font-size: 7px; letter-spacing: 1px; color: var(--dim); }
+.odo { margin-top: 4px; font-size: 8px; letter-spacing: 1px; color: var(--dim); }
 
 .speed-track { position: relative; height: 3px; margin: 10px 0 10px; background: var(--faint); }
 .speed-fill { height: 100%; width: 0; background: var(--white); transition: width .12s linear; }
 
 /* Stats */
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.stat-head { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 7px; font-weight: 700; letter-spacing: 1.5px; color: var(--dim); }
-.bar { height: 5px; background: var(--faint); }
+.stat-head { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 8px; font-weight: 700; letter-spacing: 1.5px; color: var(--dim); }
+.bar { height: 3px; background: var(--faint); }
 .bar-fill { height: 100%; width: 100%; background: var(--white); transition: width .25s ease, background-color .25s ease; }
 .bar-fill.warn { background: var(--amber); }
 .bar-fill.low { background: var(--red); animation: blink 1s steps(1) infinite; }
@@ -137,7 +137,8 @@ input { font-family: inherit; }
 .chip {
     padding: 3px 5px;
     border: 1px solid var(--line);
-    font-size: 7px;
+    background: rgba(0, 0, 0, .45);
+    font-size: 8px;
     font-weight: 700;
     letter-spacing: 1px;
     color: var(--dim);
@@ -236,7 +237,7 @@ input { font-family: inherit; }
 .row input:focus { border-color: var(--amber); }
 .row input::placeholder { color: rgba(255, 255, 255, .3); }
 
-.sync-status { display: flex; align-items: center; gap: 6px; font-size: 7px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255, 255, 255, .6); }
+.sync-status { display: flex; align-items: center; gap: 6px; font-size: 8px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255, 255, 255, .6); }
 .status-dot { width: 6px; height: 6px; background: #5b6470; }
 .status-dot.connecting { background: var(--amber); }
 .status-dot.connected { background: var(--green); }
@@ -305,8 +306,8 @@ input { font-family: inherit; }
 .music-panel .label-amber::before { content: ''; width: 6px; height: 6px; background: var(--amber); }
 .music-now { padding: 9px 10px; margin-bottom: 10px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); }
 .music-title { font-size: 12px; font-weight: 700; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.music-sub { margin-top: 4px; font-size: 6.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); }
-.music-progress { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 7px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--dim); }
+.music-sub { margin-top: 4px; font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); }
+.music-progress { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 8px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--dim); }
 .music-progress input,
 .music-volume input { flex: 1; min-width: 0; height: 10px; accent-color: var(--amber); cursor: pointer; }
 .music-controls { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
@@ -328,17 +329,17 @@ input { font-family: inherit; }
 }
 .music-add input:focus { border-color: var(--amber); }
 .music-add .btn { min-width: 34px; padding: 0; }
-.music-hint { margin-top: 6px; font-size: 6.5px; letter-spacing: .4px; line-height: 1.5; color: var(--dim); }
+.music-hint { margin-top: 6px; font-size: 8px; letter-spacing: .4px; line-height: 1.5; color: var(--dim); }
 .yt-host { position: fixed; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; z-index: -1; }
 .music-tools { display: flex; gap: 6px; margin-top: 8px; }
 .tool { flex: 1; height: 26px; background: var(--faint); color: rgba(255, 255, 255, .6); font-size: 13px; }
 .tool:hover { color: #fff; }
 .tool.active { background: var(--amber); color: #000; }
-.music-list-head { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 7px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); }
+.music-list-head { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); }
 .music-list { max-height: 110px; margin-top: 4px; overflow: auto; }
 .music-list::-webkit-scrollbar { width: 3px; }
 .music-list::-webkit-scrollbar-thumb { background: rgba(255, 184, 0, .5); }
-.music-empty { padding: 10px 4px; text-align: center; font-size: 7px; line-height: 1.5; letter-spacing: .5px; color: rgba(255, 255, 255, .3); }
+.music-empty { padding: 10px 4px; text-align: center; font-size: 8px; line-height: 1.5; letter-spacing: .5px; color: rgba(255, 255, 255, .3); }
 .music-track-row {
     width: 100%;
     display: flex;
@@ -353,7 +354,7 @@ input { font-family: inherit; }
 .music-track-row strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 400; }
 .music-track-row:hover { background: var(--faint); }
 .music-track-row.active { border-left-color: var(--amber); background: rgba(255, 184, 0, .1); color: var(--amber); }
-.music-track-index { font-size: 7px; font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, .3); }
+.music-track-index { font-size: 8px; font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, .3); }
 .music-track-row.active .music-track-index { color: var(--amber); }
 
 /* Demo */
