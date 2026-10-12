@@ -280,13 +280,13 @@ SAMC.config = {
             el.odo = $('odometer');
             el.fuel = bar('fuel');
             el.health = bar('health');
-            el.engine = $('ind-engine');
-            el.lights = $('ind-lights');
-            el.left = $('ind-left');
-            el.right = $('ind-right');
-            el.belt = $('ind-belt');
-            el.pill = $('sync-pill');
-            el.pillText = $('sync-pill-text');
+            el.engine = $('indicator-engine');
+            el.lights = $('indicator-headlights');
+            el.left = $('indicator-left');
+            el.right = $('indicator-right');
+            el.belt = $('indicator-seatbelt');
+            el.pill = $('sync-active-pill');
+            el.pillText = $('sync-active-text');
 
             loadLayout();
             applyLayout();
@@ -340,13 +340,13 @@ SAMC.config = {
     function buttons() {
         $('btn-host-connect').classList.toggle('hide', role === 'host');
         $('btn-host-disconnect').classList.toggle('hide', role !== 'host');
-        $('btn-client-connect').classList.toggle('hide', role === 'client');
-        $('btn-client-disconnect').classList.toggle('hide', role !== 'client');
+        $('btn-sync-connect').classList.toggle('hide', role === 'client');
+        $('btn-sync-disconnect').classList.toggle('hide', role !== 'client');
     }
 
     function showTab(tab) {
-        $('tab-host').classList.toggle('active', tab === 'host');
-        $('tab-client').classList.toggle('active', tab === 'client');
+        $('sync-role-host').classList.toggle('active', tab === 'host');
+        $('sync-role-client').classList.toggle('active', tab === 'client');
         $('sync-host-panel').classList.toggle('hide', tab !== 'host');
         $('sync-client-panel').classList.toggle('hide', tab !== 'client');
     }
@@ -458,19 +458,19 @@ SAMC.config = {
     function init() {
         code = genCode();
         $('sync-host-code').textContent = code;
-        try { $('sync-client-input').value = localStorage.getItem(cfg.storage.syncCode) || ''; } catch (_) {}
+        try { $('sync-client-code-input').value = localStorage.getItem(cfg.storage.syncCode) || ''; } catch (_) {}
 
         const panel = $('sync-panel');
         $('btn-sync').addEventListener('click', e => { e.stopPropagation(); panel.classList.toggle('hide'); });
         $('btn-sync-close').addEventListener('click', () => panel.classList.add('hide'));
-        $('tab-host').addEventListener('click', () => showTab('host'));
-        $('tab-client').addEventListener('click', () => showTab('client'));
+        $('sync-role-host').addEventListener('click', () => showTab('host'));
+        $('sync-role-client').addEventListener('click', () => showTab('client'));
         $('btn-host-connect').addEventListener('click', startHost);
         $('btn-host-disconnect').addEventListener('click', () => stop());
-        $('btn-client-disconnect').addEventListener('click', () => stop());
+        $('btn-sync-disconnect').addEventListener('click', () => stop());
         $('btn-restore-hud').addEventListener('click', () => stop());
-        $('btn-client-connect').addEventListener('click', () => {
-            const v = $('sync-client-input').value.trim().toUpperCase();
+        $('btn-sync-connect').addEventListener('click', () => {
+            const v = $('sync-client-code-input').value.trim().toUpperCase();
             if (!CODE_RE.test(v)) return status('disconnected', 'Enter a 6-character code');
             startClient(v);
         });
@@ -482,7 +482,7 @@ SAMC.config = {
         if (mode === 'host' || mode === 'client') {
             showTab(mode);
             if (mode === 'host' && CODE_RE.test(qCode)) { code = qCode; $('sync-host-code').textContent = code; }
-            if (mode === 'client') $('sync-client-input').value = qCode;
+            if (mode === 'client') $('sync-client-code-input').value = qCode;
             if (mode === 'host') setTimeout(startHost, 100);
             else if (CODE_RE.test(qCode)) setTimeout(() => startClient(qCode), 100);
         }
