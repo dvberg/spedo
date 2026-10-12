@@ -42,6 +42,43 @@
             </button>
         </div>
 
+        <button id="btn-music-toggle" class="music-fab no-drag" type="button" title="Music Player" aria-label="Music Player" aria-expanded="false">♫</button>
+
+        <section id="music-panel" class="panel music-panel no-drag hide" aria-label="Music Player">
+            <div class="panel-head">
+                <strong class="label-amber">Music</strong>
+                <button id="btn-music-close" class="icon-btn" type="button" aria-label="Tutup">×</button>
+            </div>
+            <audio id="music-audio" preload="metadata"></audio>
+            <div id="music-track-title" class="music-title">Belum ada lagu</div>
+            <div id="music-track-subtitle" class="music-sub">Tempel URL audio</div>
+            <div class="music-progress">
+                <span id="music-current-time">0:00</span>
+                <input id="music-progress" type="range" min="0" max="1000" value="0" step="1" aria-label="Posisi lagu">
+                <span id="music-duration">0:00</span>
+            </div>
+            <div class="music-controls">
+                <button id="btn-music-prev" class="icon-btn" type="button" aria-label="Sebelumnya">⏮</button>
+                <button id="btn-music-play" class="btn btn-round" type="button" aria-label="Putar">▶</button>
+                <button id="btn-music-next" class="icon-btn" type="button" aria-label="Berikutnya">⏭</button>
+            </div>
+            <div class="music-volume">
+                <button id="btn-music-mute" class="icon-btn" type="button" aria-label="Mute">🔊</button>
+                <input id="music-volume" type="range" min="0" max="100" value="80" step="1" aria-label="Volume">
+                <button id="btn-music-add-toggle" class="icon-btn" type="button" aria-label="Tambah URL lagu">＋</button>
+            </div>
+            <div id="music-add-row" class="music-add hide">
+                <input id="music-url-input" type="url" placeholder="Link audio langsung" autocomplete="off" spellcheck="false">
+                <button id="btn-music-add" class="btn" type="button" aria-label="Tambah dan putar">▶</button>
+            </div>
+            <div class="music-tools">
+                <button id="btn-music-repeat" class="tool" type="button" aria-label="Ulangi">↻</button>
+                <button id="btn-music-shuffle" class="tool" type="button" aria-label="Acak">⤨</button>
+            </div>
+            <div class="music-list-head"><span>Playlist</span><button id="btn-music-clear" class="icon-btn" type="button" aria-label="Kosongkan">×</button></div>
+            <div id="music-playlist" class="music-list" role="list"></div>
+        </section>
+
         <div class="cluster">
             <div class="rpm">
                 <div id="rpm-bar" class="seg-bar"></div>
@@ -93,43 +130,6 @@
         <span id="sync-pill-text">Syncing HUD</span>
         <button id="btn-restore-hud" type="button" title="Kembalikan HUD &amp; putuskan">&times;</button>
     </div>
-
-    <button id="btn-music-toggle" class="music-fab no-drag" type="button" title="Music Player" aria-label="Music Player" aria-expanded="false">♫</button>
-
-    <section id="music-panel" class="panel music-panel no-drag hide" aria-label="Music Player">
-        <div class="panel-head">
-            <strong class="label-amber">Music</strong>
-            <button id="btn-music-close" class="icon-btn" type="button" aria-label="Tutup">×</button>
-        </div>
-        <audio id="music-audio" preload="metadata"></audio>
-        <div id="music-track-title" class="music-title">Belum ada lagu</div>
-        <div id="music-track-subtitle" class="music-sub">Tempel URL audio</div>
-        <div class="music-progress">
-            <span id="music-current-time">0:00</span>
-            <input id="music-progress" type="range" min="0" max="1000" value="0" step="1" aria-label="Posisi lagu">
-            <span id="music-duration">0:00</span>
-        </div>
-        <div class="music-controls">
-            <button id="btn-music-prev" class="icon-btn" type="button" aria-label="Sebelumnya">⏮</button>
-            <button id="btn-music-play" class="btn btn-round" type="button" aria-label="Putar">▶</button>
-            <button id="btn-music-next" class="icon-btn" type="button" aria-label="Berikutnya">⏭</button>
-        </div>
-        <div class="music-volume">
-            <button id="btn-music-mute" class="icon-btn" type="button" aria-label="Mute">🔊</button>
-            <input id="music-volume" type="range" min="0" max="100" value="80" step="1" aria-label="Volume">
-            <button id="btn-music-add-toggle" class="icon-btn" type="button" aria-label="Tambah URL lagu">＋</button>
-        </div>
-        <div id="music-add-row" class="music-add hide">
-            <input id="music-url-input" type="url" placeholder="Link audio langsung" autocomplete="off" spellcheck="false">
-            <button id="btn-music-add" class="btn" type="button" aria-label="Tambah dan putar">▶</button>
-        </div>
-        <div class="music-tools">
-            <button id="btn-music-repeat" class="tool" type="button" aria-label="Ulangi">↻</button>
-            <button id="btn-music-shuffle" class="tool" type="button" aria-label="Acak">⤨</button>
-        </div>
-        <div class="music-list-head"><span>Playlist</span><button id="btn-music-clear" class="icon-btn" type="button" aria-label="Kosongkan">×</button></div>
-        <div id="music-playlist" class="music-list" role="list"></div>
-    </section>
 
     <section id="demo-panel" class="panel demo-panel no-drag hide">
         <div class="demo-title">SAMC SPEEDO TEST</div>
