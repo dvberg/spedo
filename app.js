@@ -520,7 +520,8 @@ SAMC.config = {
         5: 'Video tidak bisa diputar di pemutar ini',
         100: 'Video tidak ditemukan atau privat',
         101: 'Pemilik video melarang pemutaran di luar YouTube',
-        150: 'Pemilik video melarang pemutaran di luar YouTube'
+        150: 'Pemilik video melarang pemutaran di luar YouTube',
+        153: 'Pemutar YouTube diblokir di layar ini (error 153)'
     };
 
     let audio, tracks = [], index = -1, active = null, ytCurrent = null;
@@ -707,7 +708,7 @@ SAMC.config = {
                     events: {
                         onReady: () => { ytReadyFlag = true; applyVolume(); applyMute(); resolve(); },
                         onStateChange: onYTState,
-                        onError: e => note(YT_ERR[e.data] || 'Video YouTube tidak dapat diputar')
+                        onError: e => note(YT_ERR[e.data] || 'Video YouTube tidak dapat diputar (error ' + e.data + ')')
                     }
                 });
             };

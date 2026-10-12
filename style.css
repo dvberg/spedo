@@ -149,6 +149,10 @@ input { font-family: inherit; }
 .blink { animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: .2; } }
 
+@media (prefers-reduced-motion: reduce) {
+    .blink, .ind-belt.on .chip, .bar-fill.low { animation: none; }
+}
+
 /* Toolbar */
 .topbar {
     width: 300px;
