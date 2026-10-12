@@ -1,42 +1,164 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speedometer Template</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:,">
+    <title>SAMC JGVRP Speedometer</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main class="speedometer">
-        <section>
-            <dl>
-                <dt>Engine</dt>
-                <dd id="engine">&nbsp;</dd>
-                <dt>Speed</dt>
-                <dd id="speed">&nbsp;</dd>
-                <dt>RPM</dt>
-                <dd id="rpm">&nbsp;</dd>
-                <dt>Fuel</dt>
-                <dd id="fuel">&nbsp;</dd>
-                <dt>Health</dt>
-                <dd id="health">&nbsp;</dd>
-            </dl>
+    <div id="speedometer" class="hud">
+        <div id="sync-panel" class="panel sync-panel hide no-drag">
+            <div class="panel-head">
+                <div class="tabs">
+                    <button id="sync-role-host" class="tab active" type="button">Host</button>
+                    <button id="sync-role-client" class="tab" type="button">Client</button>
+                </div>
+                <button id="btn-sync-close" class="icon-btn" type="button" title="Tutup" aria-label="Tutup"><svg viewBox="0 0 16 16"><path d="M3.5 2.5L8 7l4.5-4.5 1 1L9 8l4.5 4.5-1 1L8 9l-4.5 4.5-1-1L7 8 2.5 3.5z"/></svg></button>
+            </div>
+            <div id="sync-host-panel" class="row">
+                <div class="code"><span id="sync-host-code">------</span></div>
+                <button id="btn-host-connect" class="btn" type="button">Connect</button>
+                <button id="btn-host-disconnect" class="btn btn-danger hide" type="button">Disconnect</button>
+            </div>
+            <div id="sync-client-panel" class="row hide">
+                <input id="sync-client-code-input" type="text" maxlength="6" placeholder="CODE" autocomplete="off">
+                <button id="btn-sync-connect" class="btn" type="button">Connect</button>
+                <button id="btn-sync-disconnect" class="btn btn-danger hide" type="button">Disconnect</button>
+            </div>
+            <div class="sync-status">
+                <span id="sync-status-dot" class="status-dot disconnected"></span>
+                <span id="sync-status-text">Disconnected</span>
+            </div>
+        </div>
+
+        <section id="music-panel" class="panel music-panel no-drag hide" aria-label="Music Player">
+            <div class="panel-head">
+                <strong class="label-amber">Music</strong>
+                <button id="btn-music-close" class="icon-btn" type="button" aria-label="Tutup"><svg viewBox="0 0 16 16"><path d="M3.5 2.5L8 7l4.5-4.5 1 1L9 8l4.5 4.5-1 1L8 9l-4.5 4.5-1-1L7 8 2.5 3.5z"/></svg></button>
+            </div>
+            <audio id="music-audio" preload="metadata"></audio>
+            <div class="music-now">
+                <div id="music-track-title" class="music-title">Belum ada lagu</div>
+                <div id="music-track-subtitle" class="music-sub">Tempel URL audio</div>
+            </div>
+            <div class="music-progress">
+                <span id="music-current-time">0:00</span>
+                <input id="music-progress" type="range" min="0" max="1000" value="0" step="1" aria-label="Posisi lagu">
+                <span id="music-duration">0:00</span>
+            </div>
+            <div class="music-controls">
+                <button id="btn-music-prev" class="icon-btn" type="button" aria-label="Sebelumnya"><svg viewBox="0 0 16 16"><path d="M3 3h2v10H3zM14 3v10L6 8z"/></svg></button>
+                <button id="btn-music-play" class="btn btn-round" type="button" aria-label="Putar"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg></button>
+                <button id="btn-music-next" class="icon-btn" type="button" aria-label="Berikutnya"><svg viewBox="0 0 16 16"><path d="M11 3h2v10h-2zM2 3v10l8-5z"/></svg></button>
+            </div>
+            <div class="music-volume">
+                <button id="btn-music-mute" class="icon-btn" type="button" aria-label="Mute"><svg viewBox="0 0 16 16"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 5.5a3.5 3.5 0 010 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+                <input id="music-volume" type="range" min="0" max="100" value="80" step="1" aria-label="Volume">
+                <button id="btn-music-add-toggle" class="icon-btn" type="button" aria-label="Tambah URL lagu"><svg viewBox="0 0 16 16"><path d="M7 2h2v5h5v2H9v5H7V9H2V7h5z"/></svg></button>
+            </div>
+            <div id="music-add-row" class="music-add hide">
+                <input id="music-url-input" type="url" placeholder="Link YouTube atau audio" autocomplete="off" spellcheck="false">
+                <button id="btn-music-add" class="btn" type="button" aria-label="Tambah dan putar"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg></button>
+            </div>
+            <div class="music-hint">YouTube, Google Drive, Dropbox, atau link audio langsung. Link Drive dan Dropbox diubah otomatis.</div>
+            <div class="music-tools">
+                <button id="btn-music-repeat" class="tool" type="button" aria-label="Ulangi"><svg viewBox="0 0 16 16"><path d="M3 6V4h8V2l3 2.5L11 7V5H5v1zM13 10v2H5v2l-3-2.5L5 9v2h6v-1z"/></svg></button>
+                <button id="btn-music-shuffle" class="tool" type="button" aria-label="Acak"><svg viewBox="0 0 16 16"><path d="M2 4h2.5c1.5 0 2.2.7 3 2l.5.8.5-.8c.8-1.3 1.5-2 3-2H14v1.5h-2.5c-.8 0-1.2.4-1.8 1.3L9 9.2l.7 1.2c.6.9 1 1.3 1.8 1.3H14V13h-2.5c-1.5 0-2.2-.7-3-2L8.5 10l-.5.8c-.8 1.3-1.5 2-3 2H2z"/></svg></button>
+            </div>
+            <div class="music-list-head"><span>Playlist</span><button id="btn-music-clear" class="icon-btn" type="button" aria-label="Kosongkan"><svg viewBox="0 0 16 16"><path d="M3.5 2.5L8 7l4.5-4.5 1 1L9 8l4.5 4.5-1 1L8 9l-4.5 4.5-1-1L7 8 2.5 3.5z"/></svg></button></div>
+            <div id="music-playlist" class="music-list" role="list"></div>
         </section>
-        <section>
-            <dl>
-                <dt>Gear</dt>
-                <dd id="gear">&nbsp;</dd>
-                <dt>Headlights</dt>
-                <dd id="headlights">&nbsp;</dd>
-                <dt>Indicators</dt>
-                <dd id="indicators">&nbsp;</dd>
-                <dt>Seatbelts</dt>
-                <dd id="seatbelts">&nbsp;</dd>
-                <dt>Odometer</dt>
-                <dd id="odometer">&nbsp;</dd>
-            </dl>
-        </section>
-    </main>
-    <script src="script.js"></script>
+
+        <div class="topbar">
+            <button id="btn-music-toggle" class="music-fab no-drag" type="button" title="Music Player" aria-label="Music Player" aria-expanded="false"><svg viewBox="0 0 16 16"><path d="M5.5 11.5a2 2 0 1 0 1.5 0V4.5l6-1.5v6.5a2 2 0 1 0 1.5 0V1.2L5.5 3.2z"/></svg></button>
+            <div class="toolbar no-drag">
+                <button id="btn-scale-down" class="tool-btn" type="button" title="Perkecil" aria-label="Perkecil"><svg viewBox="0 0 16 16"><path d="M3 7h10v2H3z"/></svg></button>
+                <button id="btn-reset" class="tool-btn" type="button" title="Reset posisi &amp; ukuran" aria-label="Reset"><svg viewBox="0 0 16 16"><path d="M8 2a6 6 0 1 0 5.7 4h-2.1A4 4 0 1 1 8 4v2l3-2.5L8 1.5V2z"/></svg></button>
+                <button id="btn-scale-up" class="tool-btn" type="button" title="Perbesar" aria-label="Perbesar"><svg viewBox="0 0 16 16"><path d="M7 3h2v4h4v2H9v4H7V9H3V7h4z"/></svg></button>
+                <button id="btn-sync" class="tool-btn" type="button" title="Sambungkan layar lain" aria-label="Sambungkan">
+                    <svg viewBox="0 0 24 24"><path d="M4 6h18V4H4c-1.1 0-2 .9-2 2v11H0v3h14v-3H4V6zm19 2h-6c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V9c0-.55-.45-1-1-1zm-1 10h-4v-7h4v7z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="cluster">
+            <div class="rpm">
+                <div id="rpm-bar" class="seg-bar"></div>
+                <div class="rpm-scale">
+                    <span>0</span><span>2</span><span>4</span><span>6</span><span class="hot">8</span><span class="hot">10</span>
+                </div>
+            </div>
+
+            <div class="main-row">
+                <div class="gear"><span id="gear-display">N</span></div>
+                <div class="readout">
+                    <span id="speed-display">0</span>
+                    <span class="unit">MPH</span>
+                    <span id="odometer" class="odo">0.0 mi</span>
+                </div>
+            </div>
+
+            <div class="speed-track"><div id="speed-fill" class="speed-fill"></div></div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-head"><span>FUEL</span><span id="fuel-text">100%</span></div>
+                    <div class="bar"><div id="fuel-fill" class="bar-fill"></div></div>
+                </div>
+                <div class="stat">
+                    <div class="stat-head"><span>HEALTH</span><span id="health-text">100%</span></div>
+                    <div class="bar"><div id="health-fill" class="bar-fill"></div></div>
+                </div>
+            </div>
+
+            <div class="indicators">
+                <div id="indicator-left" class="ind ind-arrow">
+                    <svg viewBox="0 0 512 512"><polygon points="316.5,153.6 316.5,18.6 0,256 316.5,493.4 316.5,358.4 512,358.4 512,153.6"/></svg>
+                </div>
+                <div id="indicator-seatbelt" class="ind ind-belt"><span class="chip">BELT</span></div>
+                <div id="indicator-headlights" class="ind ind-lights">
+                    <svg viewBox="0 0 256 256"><path d="M144,64V192a16,16,0,0,1-16,16H88A80,80,0,0,1,8,127.4C8.3,83.6,44.6,48,88.9,48H128A16,16,0,0,1,144,64Zm96,104H168a8,8,0,0,0,0,16h72a8,8,0,0,0,0-16ZM168,88h72a8,8,0,0,0,0-16H168a8,8,0,0,0,0,16Zm72,16H168a8,8,0,0,0,0,16h72a8,8,0,0,0,0-16Zm0,32H168a8,8,0,0,0,0,16h72a8,8,0,0,0,0-16Z"/></svg>
+                </div>
+                <div id="indicator-engine" class="ind ind-engine"><span class="chip">ENG</span></div>
+                <div id="indicator-right" class="ind ind-arrow">
+                    <svg viewBox="0 0 512 512"><polygon points="512,256 195.5,18.6 195.5,153.6 0,153.6 0,358.4 195.5,358.4 195.5,493.4"/></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sync-active-pill" class="sync-pill hide">
+        <span class="pulse-dot"></span>
+        <span id="sync-active-text">Syncing HUD</span>
+        <button id="btn-restore-hud" type="button" title="Kembalikan HUD &amp; putuskan" aria-label="Kembalikan HUD">&times;</button>
+    </div>
+
+    <section id="demo-panel" class="panel demo-panel no-drag hide">
+        <div class="demo-title">SAMC SPEEDO TEST</div>
+        <label>Speed <input id="demo-speed" type="range" min="0" max="320" value="80"><span id="demo-speed-v">80 km/h</span></label>
+        <label>RPM <input id="demo-rpm" type="range" min="0" max="100" value="55"><span id="demo-rpm-v">5.5k</span></label>
+        <label>Fuel <input id="demo-fuel" type="range" min="0" max="100" value="75"><span id="demo-fuel-v">75%</span></label>
+        <label>Health <input id="demo-health" type="range" min="0" max="100" value="100"><span id="demo-health-v">100%</span></label>
+        <div class="demo-buttons">
+            <button data-demo="left" type="button">LEFT</button>
+            <button data-demo="right" type="button">RIGHT</button>
+            <button data-demo="lights" type="button">LIGHTS</button>
+            <button data-demo="seatbelt" type="button" class="on">BELT</button>
+            <button data-demo="engine" type="button" class="on">ENGINE</button>
+            <button data-demo="gear" data-value="-1" type="button">R</button>
+            <button data-demo="gear" data-value="0" type="button">N</button>
+            <button data-demo="gear" data-value="1" type="button">1</button>
+            <button data-demo="gear" data-value="2" type="button">2</button>
+            <button data-demo="gear" data-value="3" type="button">3</button>
+            <button data-demo="gear" data-value="4" type="button">4</button>
+        </div>
+    </section>
+
+    <div id="yt-host" class="yt-host" aria-hidden="true"><div id="yt-player"></div></div>
+
+    <script src="peer.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
