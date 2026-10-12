@@ -60,22 +60,22 @@
                 <span id="music-duration">0:00</span>
             </div>
             <div class="music-controls">
-                <button id="btn-music-prev" class="icon-btn" type="button" aria-label="Sebelumnya">⏮</button>
-                <button id="btn-music-play" class="btn btn-round" type="button" aria-label="Putar">▶</button>
-                <button id="btn-music-next" class="icon-btn" type="button" aria-label="Berikutnya">⏭</button>
+                <button id="btn-music-prev" class="icon-btn" type="button" aria-label="Sebelumnya"><svg viewBox="0 0 16 16"><path d="M3 3h2v10H3zM14 3v10L6 8z"/></svg></button>
+                <button id="btn-music-play" class="btn btn-round" type="button" aria-label="Putar"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg></button>
+                <button id="btn-music-next" class="icon-btn" type="button" aria-label="Berikutnya"><svg viewBox="0 0 16 16"><path d="M11 3h2v10h-2zM2 3v10l8-5z"/></svg></button>
             </div>
             <div class="music-volume">
-                <button id="btn-music-mute" class="icon-btn" type="button" aria-label="Mute">🔊</button>
+                <button id="btn-music-mute" class="icon-btn" type="button" aria-label="Mute"><svg viewBox="0 0 16 16"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 5.5a3.5 3.5 0 010 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
                 <input id="music-volume" type="range" min="0" max="100" value="80" step="1" aria-label="Volume">
-                <button id="btn-music-add-toggle" class="icon-btn" type="button" aria-label="Tambah URL lagu">＋</button>
+                <button id="btn-music-add-toggle" class="icon-btn" type="button" aria-label="Tambah URL lagu"><svg viewBox="0 0 16 16"><path d="M7 2h2v5h5v2H9v5H7V9H2V7h5z"/></svg></button>
             </div>
             <div id="music-add-row" class="music-add hide">
                 <input id="music-url-input" type="url" placeholder="Link audio langsung" autocomplete="off" spellcheck="false">
                 <button id="btn-music-add" class="btn" type="button" aria-label="Tambah dan putar">▶</button>
             </div>
             <div class="music-tools">
-                <button id="btn-music-repeat" class="tool" type="button" aria-label="Ulangi">↻</button>
-                <button id="btn-music-shuffle" class="tool" type="button" aria-label="Acak">⤨</button>
+                <button id="btn-music-repeat" class="tool" type="button" aria-label="Ulangi"><svg viewBox="0 0 16 16"><path d="M3 6V4h8V2l3 2.5L11 7V5H5v1zM13 10v2H5v2l-3-2.5L5 9v2h6v-1z"/></svg></button>
+                <button id="btn-music-shuffle" class="tool" type="button" aria-label="Acak"><svg viewBox="0 0 16 16"><path d="M2 4h2.5c1.5 0 2.2.7 3 2l.5.8.5-.8c.8-1.3 1.5-2 3-2H14v1.5h-2.5c-.8 0-1.2.4-1.8 1.3L9 9.2l.7 1.2c.6.9 1 1.3 1.8 1.3H14V13h-2.5c-1.5 0-2.2-.7-3-2L8.5 10l-.5.8c-.8 1.3-1.5 2-3 2H2z"/></svg></button>
             </div>
             <div class="music-list-head"><span>Playlist</span><button id="btn-music-clear" class="icon-btn" type="button" aria-label="Kosongkan">×</button></div>
             <div id="music-playlist" class="music-list" role="list"></div>

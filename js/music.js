@@ -62,7 +62,7 @@
             const num = document.createElement('span');
             num.className = 'music-track-index';
             num.textContent = String(i + 1).padStart(2, '0');
-            row.append('♫ ', name, num);
+            row.append(name, num);
             row.addEventListener('click', () => play(i));
             list.appendChild(row);
         });
@@ -75,9 +75,16 @@
         renderList();
     }
 
+    const ICON = {
+        play: '<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>',
+        pause: '<svg viewBox="0 0 16 16"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>',
+        vol: '<svg viewBox="0 0 16 16"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 5.5a3.5 3.5 0 010 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+        mute: '<svg viewBox="0 0 16 16"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 6l3.5 4M14.5 6L11 10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'
+    };
+
     function playBtn() {
         const playing = !audio.paused && !audio.ended;
-        $('btn-music-play').textContent = playing ? '❚❚' : '▶';
+        $('btn-music-play').innerHTML = playing ? ICON.pause : ICON.play;
     }
 
     function progress() {
@@ -149,11 +156,11 @@
         vol.addEventListener('input', () => {
             audio.volume = Number(vol.value) / 100;
             audio.muted = false;
-            mute.textContent = audio.volume === 0 ? '🔇' : '🔊';
+            mute.innerHTML = audio.volume === 0 ? ICON.mute : ICON.vol;
         });
         mute.addEventListener('click', () => {
             audio.muted = !audio.muted;
-            mute.textContent = audio.muted ? '🔇' : '🔊';
+            mute.innerHTML = audio.muted ? ICON.mute : ICON.vol;
         });
 
         bar.addEventListener('pointerdown', () => { seeking = true; });
