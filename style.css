@@ -47,20 +47,6 @@ button { font-family: inherit; cursor: pointer; border: 0; color: inherit; }
 .dials { position: relative; width: 310px; height: 180px; margin-top: -15px; }
 .dials canvas { position: absolute; inset: 0; z-index: 2; }
 
-.bg-layer {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    opacity: 0;
-    background: center / contain no-repeat;
-    transition: opacity .35s ease;
-}
-.bg-speed { clip-path: circle(88px at 110px 112px); }
-.bg-rpm { clip-path: circle(60px at 235px 90px); }
-.bg-speed.active { opacity: .92; }
-.bg-rpm.active { opacity: .62; }
-
 .readout {
     position: absolute;
     left: 110px;

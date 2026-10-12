@@ -9,7 +9,6 @@
     };
     const layout = { scale: 1, left: null, top: null };
     const el = {};
-    let bgStage = -2, bgToken = 0;
 
     const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
     const num = (v, d) => { const n = Number(v); return Number.isFinite(n) ? n : d; };
@@ -52,25 +51,6 @@
         return out;
     }
 
-    function bgFor(mph) {
-        const i = cfg.bgStages.findIndex(s => mph <= s.max);
-        return i === -1 ? cfg.bgStages.length - 1 : i;
-    }
-
-    function updateBackground(mph) {
-        const idx = bgFor(mph);
-        if (idx === bgStage) return;
-        bgStage = idx;
-        const token = ++bgToken;
-        const layers = [el.bgSpeed, el.bgRpm];
-        layers.forEach(l => l.classList.remove('active'));
-        setTimeout(() => {
-            if (token !== bgToken) return;
-            const url = 'url("' + cfg.bgStages[idx].img + '")';
-            layers.forEach(l => { l.style.backgroundImage = url; l.classList.add('active'); });
-        }, 120);
-    }
-
     function setBar(bar, value) {
         bar.fill.style.width = (value * 100) + '%';
         bar.text.textContent = Math.round(value * 100) + '%';
@@ -83,7 +63,6 @@
         SAMC.gauge.setSpeedMph(mph);
         SAMC.gauge.setRpm(state.rpm);
         SAMC.gauge.setGear(state.gear);
-        updateBackground(mph);
         setBar(el.fuel, state.fuel);
         setBar(el.health, state.health);
         el.engine.classList.toggle('on', state.engine);
@@ -182,8 +161,6 @@
             el.root = $('speedometer');
             el.speed = $('speed-display');
             el.odo = $('odometer');
-            el.bgSpeed = $('bg-speed');
-            el.bgRpm = $('bg-rpm');
             el.fuel = bar('fuel');
             el.health = bar('health');
             el.engine = $('ind-engine');

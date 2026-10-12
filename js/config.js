@@ -9,14 +9,6 @@ SAMC.config = {
     peerPrefix: 'samc-spedo-',
     relayMs: 16,
     scale: { min: 0.5, max: 2, step: 0.1 },
-    bgStages: [
-        { max: 2, img: 'assets/01.png' },
-        { max: 25, img: 'assets/02.png' },
-        { max: 50, img: 'assets/03.png' },
-        { max: 80, img: 'assets/04.png' },
-        { max: 100, img: 'assets/05.png' },
-        { max: Infinity, img: 'assets/06.png' }
-    ],
     peer: {
         config: {
             iceServers: [

@@ -1,219 +1,126 @@
 (function () {
     const DEG = Math.PI / 180;
-    const W = 310, H = 180;
-    const S = { cx: 110, cy: 112, r: 88, needle: 77 };
-    const R = { cx: 235, cy: 90, r: 60, needle: 56 };
-    const MIN_A = -110, MAX_A = 110;
-    const FONT = 'Formula1, sans-serif';
-
-    let canvas, ctx, bg, bgCtx;
-    let scale = 1;
-    let gear = 0;
-    let curSpeed = MIN_A, tgtSpeed = MIN_A, curRpm = MIN_A, tgtRpm = MIN_A;
-    let running = false, last = 0;
+    const W = 310, H = 180, MIN = -110, MAX = 110;
+    const S = { cx: 110, cy: 112, r: 88, arc: 80.7, needle: 77 };
+    const R = { cx: 235, cy: 90, r: 60, arc: 52.5, needle: 56 };
+    let canvas, ctx, scale = 1, gear = 0, dpr = 1;
+    let speed = MIN, targetSpeed = MIN, rpm = MIN, targetRpm = MIN;
+    let animating = false, lastFrame = 0;
 
     const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-    const pt = (cx, cy, r, deg) => [cx + r * Math.sin(deg * DEG), cy - r * Math.cos(deg * DEG)];
-    const arcAng = deg => (deg - 90) * DEG;
-    const k = () => scale * (window.devicePixelRatio || 1);
+    const angle = deg => (deg - 90) * DEG;
+    const point = (g, radius, deg) => [g.cx + radius * Math.sin(deg * DEG), g.cy - radius * Math.cos(deg * DEG)];
+    const font = (size, weight = '400') => `${weight} ${size}px Formula1, sans-serif`;
 
-    function outsideSpeedClip(c) {
-        c.beginPath();
-        c.rect(0, 0, W, H);
-        c.arc(S.cx, S.cy, S.r, 0, Math.PI * 2, true);
-        c.clip();
+    function line(c, a, b, width, color) {
+        c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]);
+        c.lineWidth = width; c.strokeStyle = color; c.stroke();
     }
 
-    function zone(c, g, r, from, to, color, alpha, width) {
-        c.beginPath();
-        c.arc(g.cx, g.cy, r, arcAng(from), arcAng(to));
-        c.lineCap = 'round';
-        c.lineWidth = width;
-        c.strokeStyle = color;
-        c.globalAlpha = alpha;
-        c.stroke();
-        c.globalAlpha = 1;
+    function arc(c, g, from, to, color, width, alpha = 1) {
+        c.beginPath(); c.arc(g.cx, g.cy, g.arc, angle(from), angle(to));
+        c.lineCap = 'round'; c.lineWidth = width; c.globalAlpha = alpha;
+        c.strokeStyle = color; c.stroke(); c.globalAlpha = 1;
     }
 
-    function ticks(c, g, outer, inner, list) {
-        list.forEach(t => {
-            const a = pt(g.cx, g.cy, outer, t.deg);
-            const b = pt(g.cx, g.cy, t.major ? inner : inner + 1.5, t.deg);
-            c.beginPath();
-            c.moveTo(a[0], a[1]);
-            c.lineTo(b[0], b[1]);
-            c.lineWidth = t.major ? 1.5 : 0.8;
-            c.strokeStyle = t.major ? 'rgba(255,255,255,.6)' : 'rgba(255,255,255,.3)';
-            c.stroke();
+    function ticks(c, g, values, inner) {
+        values.forEach(({ deg, major }) => {
+            const outer = point(g, g.r, deg);
+            const inside = point(g, major ? inner : inner + 1.5, deg);
+            line(c, outer, inside, major ? 1.5 : .75, major ? 'rgba(255,255,255,.7)' : 'rgba(255,255,255,.32)');
         });
     }
 
-    function labels(c, g, r, list) {
-        c.font = 'bold 7px ' + FONT;
-        c.textAlign = 'center';
-        c.textBaseline = 'middle';
-        list.forEach(l => {
-            const p = pt(g.cx, g.cy, r, l.deg);
-            c.fillStyle = l.color || 'rgba(255,255,255,.5)';
-            c.fillText(l.text, p[0], p[1]);
+    function labels(c, g, radius, items) {
+        c.font = font(7, '700'); c.textAlign = 'center'; c.textBaseline = 'middle';
+        items.forEach(item => {
+            const p = point(g, radius, item.deg);
+            c.fillStyle = item.color || 'rgba(255,255,255,.58)';
+            c.fillText(item.text, p[0], p[1]);
         });
     }
 
-    function outline(c, g) {
-        c.beginPath();
-        c.arc(g.cx, g.cy, g.r, 0, Math.PI * 2);
-        c.strokeStyle = 'rgba(0,0,0,.75)';
-        c.lineWidth = 2.6;
-        c.stroke();
-        c.strokeStyle = 'rgba(255,255,255,.35)';
-        c.lineWidth = 1.6;
-        c.stroke();
+    function dialFace(c, g) {
+        const face = c.createRadialGradient(g.cx - 12, g.cy - 15, 8, g.cx, g.cy, g.r);
+        face.addColorStop(0, 'rgba(38,43,51,.92)');
+        face.addColorStop(1, 'rgba(4,6,9,.92)');
+        c.beginPath(); c.arc(g.cx, g.cy, g.r, 0, Math.PI * 2); c.fillStyle = face; c.fill();
+        c.beginPath(); c.arc(g.cx, g.cy, g.r, 0, Math.PI * 2);
+        c.lineWidth = 2.6; c.strokeStyle = 'rgba(0,0,0,.85)'; c.stroke();
+        c.lineWidth = 1.2; c.strokeStyle = 'rgba(255,255,255,.3)'; c.stroke();
     }
 
     function drawStatic() {
-        const c = bgCtx, f = k();
-        c.setTransform(1, 0, 0, 1, 0, 0);
-        c.clearRect(0, 0, bg.width, bg.height);
-        c.setTransform(f, 0, 0, f, 0, 0);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        dialFace(ctx, S); dialFace(ctx, R);
 
-        c.fillStyle = 'rgba(0,0,0,.16)';
-        c.beginPath();
-        c.arc(S.cx, S.cy, S.r, 0, Math.PI * 2);
-        c.fill();
-
-        c.save();
-        outsideSpeedClip(c);
-        c.beginPath();
-        c.arc(R.cx, R.cy, R.r, 0, Math.PI * 2);
-        c.fill();
-        outline(c, R);
-        zone(c, R, 52.5, 70, 110, '#e74c3c', 0.8, 2.25);
-        const rt = [], rl = [];
-        for (let v = 0; v <= 11; v++) {
-            rt.push({ deg: v * 20 + MIN_A, major: true });
-            if (v > 2) rl.push({ deg: v * 20 + MIN_A, text: String(v), color: v >= 7 ? '#ff4757' : null });
+        arc(ctx, S, MIN, 10, '#32d583', 3.2, .95);
+        arc(ctx, S, 10, 50, '#f3c744', 3.2, .95);
+        arc(ctx, S, 50, MAX, '#ff5364', 3.2, .95);
+        const speedTicks = [], speedLabels = [];
+        for (let value = 0; value <= 200; value += 20) {
+            const deg = value * 1.1 + MIN;
+            speedTicks.push({ deg, major: value % 40 === 0 });
+            speedLabels.push({ deg, text: String(value) });
         }
-        ticks(c, R, 60, 54, rt);
-        labels(c, R, 46, rl);
-        c.font = 'bold 7.5px ' + FONT;
-        c.fillStyle = 'rgba(255,255,255,.6)';
-        c.textAlign = 'center';
-        c.textBaseline = 'middle';
-        c.fillText('RPM', R.cx, 123.75);
-        c.font = '5px ' + FONT;
-        c.fillStyle = 'rgba(255,255,255,.3)';
-        c.fillText('x1000', R.cx, 132.75);
-        c.restore();
+        ticks(ctx, S, speedTicks, 79.2); labels(ctx, S, 67, speedLabels);
 
-        outline(c, S);
-        zone(c, S, 80.7, -110, 10, '#2ecc71', 0.6, 2.9);
-        zone(c, S, 80.7, 10, 50, '#f1c40f', 0.6, 2.9);
-        zone(c, S, 80.7, 50, 110, '#e74c3c', 0.8, 2.9);
-        const st = [], sl = [];
-        for (let m = 0; m <= 200; m += 20) {
-            st.push({ deg: m * 1.1 + MIN_A, major: m % 40 === 0 });
-            sl.push({ deg: m * 1.1 + MIN_A, text: String(m) });
+        arc(ctx, R, 55, MAX, '#ff5364', 2.5, .95);
+        const rpmTicks = [], rpmLabels = [];
+        for (let value = 0; value <= 11; value++) {
+            rpmTicks.push({ deg: value * 20 + MIN, major: true });
+            if (value > 2) rpmLabels.push({ deg: value * 20 + MIN, text: String(value), color: value >= 7 ? '#ff5364' : null });
         }
-        ticks(c, S, 88, 79.2, st);
-        labels(c, S, 67, sl);
+        ticks(ctx, R, rpmTicks, 54); labels(ctx, R, 46, rpmLabels);
+        ctx.font = font(7.5, '700'); ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.textAlign = 'center';
+        ctx.fillText('RPM', R.cx, 123.75);
+        ctx.font = font(5); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillText('x1000', R.cx, 132.75);
     }
 
-    function needle(c, g, deg) {
-        c.save();
-        c.translate(g.cx, g.cy);
-        c.rotate(deg * DEG);
-        c.beginPath();
-        c.moveTo(0, 0);
-        c.lineTo(0, -g.needle);
-        c.strokeStyle = '#ff4757';
-        c.lineWidth = g === S ? 2.6 : 2.1;
-        c.lineCap = 'round';
-        c.stroke();
-        c.restore();
-        const cap = g === S ? 7.3 : 7.5;
-        c.beginPath();
-        c.arc(g.cx, g.cy, cap, 0, Math.PI * 2);
-        c.fillStyle = '#1e1e1e';
-        c.fill();
-        c.strokeStyle = 'rgba(255,255,255,.2)';
-        c.lineWidth = 0.75;
-        c.stroke();
-        c.beginPath();
-        c.arc(g.cx, g.cy, cap / 2, 0, Math.PI * 2);
-        c.fillStyle = '#ff4757';
-        c.fill();
+    function needle(c, g, value, color) {
+        c.save(); c.translate(g.cx, g.cy); c.rotate(value * DEG);
+        c.beginPath(); c.moveTo(0, 2); c.lineTo(0, -g.needle);
+        c.lineWidth = g === S ? 2.8 : 2.2; c.lineCap = 'round'; c.strokeStyle = color; c.shadowColor = color; c.shadowBlur = 7; c.stroke(); c.restore();
+        c.shadowBlur = 0; c.beginPath(); c.arc(g.cx, g.cy, g === S ? 7.5 : 7, 0, Math.PI * 2);
+        c.fillStyle = '#0c1117'; c.fill(); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1; c.stroke();
+        c.beginPath(); c.arc(g.cx, g.cy, 3.6, 0, Math.PI * 2); c.fillStyle = color; c.fill();
     }
 
     function render() {
         if (!ctx) return;
-        const f = k();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(bg, 0, 0);
-        ctx.setTransform(f, 0, 0, f, 0, 0);
-
-        ctx.save();
-        outsideSpeedClip(ctx);
-        needle(ctx, R, curRpm);
-        ctx.restore();
-
-        ctx.save();
-        ctx.font = '900 15px ' + FONT;
-        ctx.fillStyle = '#ff6b35';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = 'rgba(0,0,0,.85)';
-        ctx.shadowBlur = 3;
-        ctx.shadowOffsetY = 1;
-        ctx.fillText(gear === 0 ? 'N' : gear < 0 ? 'R' : String(gear), S.cx, 90);
-        ctx.restore();
-
-        needle(ctx, S, curSpeed);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); drawStatic();
+        needle(ctx, R, rpm, '#ff5364');
+        ctx.font = font(15, '700'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ff7847';
+        ctx.shadowColor = 'rgba(0,0,0,.9)'; ctx.shadowBlur = 4;
+        ctx.fillText(gear === 0 ? 'N' : gear < 0 ? 'R' : String(gear), S.cx, 90); ctx.shadowBlur = 0;
+        const speedColor = speed > 45 ? '#ff5364' : speed > -5 ? '#f3c744' : '#32d583';
+        needle(ctx, S, speed, speedColor);
     }
 
-    function tick(now) {
-        const dt = Math.min((now - last) / 1000, 0.1);
-        last = now;
-        const e = 1 - Math.exp(-7.5 * dt);
-        let moving = false;
-        const ds = tgtSpeed - curSpeed, dr = tgtRpm - curRpm;
-        if (Math.abs(ds) > 0.15) { curSpeed += ds * e; moving = true; } else curSpeed = tgtSpeed;
-        if (Math.abs(dr) > 0.15) { curRpm += dr * e; moving = true; } else curRpm = tgtRpm;
+    function frame(now) {
+        const dt = Math.min((now - lastFrame) / 1000, .1); lastFrame = now;
+        const ease = 1 - Math.exp(-8 * dt);
+        speed += (targetSpeed - speed) * ease; rpm += (targetRpm - rpm) * ease;
+        const moving = Math.abs(targetSpeed - speed) > .1 || Math.abs(targetRpm - rpm) > .1;
         render();
-        if (moving) requestAnimationFrame(tick);
-        else running = false;
+        if (moving) requestAnimationFrame(frame); else animating = false;
     }
 
-    function kick() {
-        if (running) return;
-        running = true;
-        last = performance.now();
-        requestAnimationFrame(tick);
-    }
-
+    function kick() { if (!animating) { animating = true; lastFrame = performance.now(); requestAnimationFrame(frame); } }
     function resize() {
-        const f = k();
-        canvas.width = bg.width = Math.round(W * f);
-        canvas.height = bg.height = Math.round(H * f);
-        canvas.style.width = W + 'px';
-        canvas.style.height = H + 'px';
-        drawStatic();
-        kick();
+        dpr = (window.devicePixelRatio || 1) * scale;
+        canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+        render(); kick();
     }
 
     SAMC.gauge = {
-        init(el, initialScale) {
-            canvas = el;
-            ctx = canvas.getContext('2d');
-            bg = document.createElement('canvas');
-            bgCtx = bg.getContext('2d');
-            scale = initialScale || 1;
-            resize();
-        },
-        setScale(s) { scale = s; if (canvas) resize(); },
-        redraw() { if (canvas) { drawStatic(); kick(); } },
-        setSpeedMph(mph) { tgtSpeed = clamp(mph, 0, 200) * 1.1 + MIN_A; kick(); },
-        setRpm(r) { tgtRpm = clamp(r * 10 * 20 + MIN_A, MIN_A, MAX_A); kick(); },
-        setGear(g) { gear = g; kick(); }
+        init(el, initialScale) { canvas = el; ctx = canvas.getContext('2d'); scale = initialScale || 1; resize(); },
+        setScale(value) { scale = value; if (canvas) resize(); },
+        redraw() { if (canvas) { resize(); } },
+        setSpeedMph(value) { targetSpeed = clamp(value, 0, 200) * 1.1 + MIN; kick(); },
+        setRpm(value) { targetRpm = clamp(value * 10 * 20 + MIN, MIN, MAX); kick(); },
+        setGear(value) { gear = value; kick(); }
     };
 })();
