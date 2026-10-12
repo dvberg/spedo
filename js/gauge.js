@@ -55,9 +55,9 @@
         ctx.clearRect(0, 0, W, H);
         dialFace(ctx, S); dialFace(ctx, R);
 
-        arc(ctx, S, MIN, 10, '#32d583', 3.2, .95);
-        arc(ctx, S, 10, 50, '#f3c744', 3.2, .95);
-        arc(ctx, S, 50, MAX, '#ff5364', 3.2, .95);
+        arc(ctx, S, MIN, 10, '#5fd38d', 3, .9);
+        arc(ctx, S, 10, 50, '#e8b84a', 3, .9);
+        arc(ctx, S, 50, MAX, '#e5484d', 3, .9);
         const speedTicks = [], speedLabels = [];
         for (let value = 0; value <= 200; value += 20) {
             const deg = value * 1.1 + MIN;
@@ -66,11 +66,11 @@
         }
         ticks(ctx, S, speedTicks, 79.2); labels(ctx, S, 67, speedLabels);
 
-        arc(ctx, R, 55, MAX, '#ff5364', 2.5, .95);
+        arc(ctx, R, 55, MAX, '#e5484d', 2.5, .9);
         const rpmTicks = [], rpmLabels = [];
         for (let value = 0; value <= 11; value++) {
             rpmTicks.push({ deg: value * 20 + MIN, major: true });
-            if (value > 2) rpmLabels.push({ deg: value * 20 + MIN, text: String(value), color: value >= 7 ? '#ff5364' : null });
+            if (value > 2) rpmLabels.push({ deg: value * 20 + MIN, text: String(value), color: value >= 7 ? '#e5484d' : null });
         }
         ticks(ctx, R, rpmTicks, 54); labels(ctx, R, 46, rpmLabels);
         ctx.font = font(7.5, '700'); ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.textAlign = 'center';
@@ -90,11 +90,11 @@
     function render() {
         if (!ctx) return;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); drawStatic();
-        needle(ctx, R, rpm, '#ff5364');
-        ctx.font = font(15, '700'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ff7847';
+        needle(ctx, R, rpm, '#e5484d');
+        ctx.font = font(15, '700'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffb020';
         ctx.shadowColor = 'rgba(0,0,0,.9)'; ctx.shadowBlur = 4;
         ctx.fillText(gear === 0 ? 'N' : gear < 0 ? 'R' : String(gear), S.cx, 90); ctx.shadowBlur = 0;
-        const speedColor = speed > 45 ? '#ff5364' : speed > -5 ? '#f3c744' : '#32d583';
+        const speedColor = speed > 45 ? '#e5484d' : speed > -5 ? '#e8b84a' : '#5fd38d';
         needle(ctx, S, speed, speedColor);
     }
 

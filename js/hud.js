@@ -53,6 +53,8 @@
 
     function setBar(bar, value) {
         bar.fill.style.width = (value * 100) + '%';
+        bar.fill.classList.toggle('warn', value < 0.4 && value >= 0.2);
+        bar.fill.classList.toggle('low', value < 0.2);
         bar.text.textContent = Math.round(value * 100) + '%';
     }
 
