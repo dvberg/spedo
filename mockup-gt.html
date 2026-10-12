@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMC Mockup - Tachometer Busur</title>
+    <style>
+        @font-face { font-family: 'F1B'; src: url('assets/Formula1-Bold_web_0.ttf') format('truetype'); }
+        :root {
+            --green: #3ddc84; --amber: #ffb300; --red: #ff4d4d; --blue: #4da3ff;
+            --dim: rgba(255, 255, 255, .45); --line: rgba(255, 255, 255, .12);
+        }
+        html, body { margin: 0; height: 100%; }
+        body { background: #1b1d21; font-family: 'F1B', Arial, sans-serif; color: #fff; display: flex; align-items: center; justify-content: center; }
+
+        .hud { position: relative; width: 300px; user-select: none; }
+        .hud.hide { display: none; }
+        .arc { width: 100%; display: block; }
+        .seg { stroke: rgba(255, 255, 255, .12); fill: none; stroke-width: 12; stroke-linecap: butt; transition: stroke .08s; }
+        .seg.lit { stroke: #fff; }
+        .seg.hot { stroke: var(--red); }
+        .seg.hot.lit { stroke: var(--red); }
+        .seg.warn.lit { stroke: var(--amber); }
+
+        .center { position: absolute; left: 0; right: 0; top: 62px; text-align: center; pointer-events: none; }
+        .speed { font-size: 64px; line-height: 1; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+        .unit { font-size: 11px; letter-spacing: 3px; color: var(--amber); margin-top: 4px; }
+
+        .gear {
+            position: absolute; left: 14px; top: 176px; width: 52px; height: 52px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid var(--line); background: rgba(0, 0, 0, .45);
+            font-size: 30px;
+        }
+        .odo { position: absolute; right: 14px; top: 196px; font-size: 11px; color: var(--dim); letter-spacing: 1px; }
+        .rpmlabel { position: absolute; left: 0; right: 0; top: 16px; text-align: center; font-size: 9px; letter-spacing: 3px; color: var(--dim); }
+
+        .bars { position: absolute; left: 80px; right: 14px; top: 176px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .stat-head { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1px; color: var(--dim); margin-bottom: 4px; }
+        .bar { height: 4px; background: rgba(255, 255, 255, .1); }
+        .bar-fill { height: 100%; width: 100%; background: #fff; transition: width .15s; }
+        .bar-fill.low { background: var(--red); }
+        .bar-fill.warn { background: var(--amber); }
+
+        .inds { position: absolute; left: 14px; right: 14px; top: 246px; display: flex; align-items: center; justify-content: space-between; }
+        .ind { height: 16px; min-width: 16px; display: flex; align-items: center; justify-content: center; }
+        .ind svg { width: 16px; height: 16px; fill: rgba(255, 255, 255, .14); }
+        .ind.on svg { fill: var(--green); }
+        .ind-lights.on svg { fill: var(--blue); }
+        .chip { padding: 3px 5px; border: 1px solid var(--line); background: rgba(0, 0, 0, .45); font-size: 8px; letter-spacing: 1px; color: var(--dim); }
+        .ind-belt.on .chip { border-color: var(--red); color: var(--red); }
+        .ind-engine .chip { border-color: var(--red); color: var(--red); }
+        .ind-engine.on .chip { border-color: var(--green); color: var(--green); }
+
+        .blink { animation: blink 1s steps(1) infinite; }
+        @keyframes blink { 50% { opacity: .2; } }
+        @media (prefers-reduced-motion: reduce) { .blink { animation: none; } }
+    </style>
+</head>
+<body>
+    <div id="hud" class="hud">
+        <svg class="arc" viewBox="0 0 300 180" aria-hidden="true">
+            <g id="arc"></g>
+        </svg>
+        <div class="rpmlabel">RPM x1000</div>
+        <div class="center">
+            <div id="speed" class="speed">0</div>
+            <div id="unit" class="unit">MPH</div>
+        </div>
+        <div id="gear" class="gear">N</div>
+        <div id="odo" class="odo">0.0 mi</div>
+        <div class="bars">
+            <div>
+                <div class="stat-head"><span>FUEL</span><span id="fuel-text">100%</span></div>
+                <div class="bar"><div id="fuel-fill" class="bar-fill"></div></div>
+            </div>
+            <div>
+                <div class="stat-head"><span>HEALTH</span><span id="health-text">100%</span></div>
+                <div class="bar"><div id="health-fill" class="bar-fill"></div></div>
+            </div>
+        </div>
+        <div class="inds">
+            <div id="ind-left" class="ind ind-arrow">
+                <svg viewBox="0 0 512 512"><polygon points="316.5,153.6 316.5,18.6 0,256 316.5,493.4 316.5,358.4 512,358.4 512,153.6"/></svg>
+            </div>
+            <div id="ind-belt" class="ind ind-belt"><span class="chip">BELT</span></div>
+            <div id="ind-lights" class="ind ind-lights">
+                <svg viewBox="0 0 256 256"><path d="M144,64V192a16,16,0,0,1-16,16H88A80,80,0,0,1,8,127.4C8.3,83.6,44.6,48,88.9,48H128A16,16,0,0,1,144,64Zm96,104H168a8,8,0,0,0,0,16h72a8,8,0,0,0,0-16ZM168,88h72a8,8,0,0,0,0-16H168a8,8,0,0,0,0,16Zm72,16H168a8,8,0,0,0,0,16h72a8,8,0,0,0,0-16Zm0,32H168a8,8,0,0,0,0,16h72a8,8,0,0,0,0-16Z"/></svg>
+            </div>
+            <div id="ind-engine" class="ind ind-engine"><span class="chip">ENG</span></div>
+            <div id="ind-right" class="ind ind-arrow">
+                <svg viewBox="0 0 512 512"><polygon points="512,256 195.5,18.6 195.5,153.6 0,153.6 0,358.4 195.5,358.4 195.5,493.4"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        const N = 24, MAX = 10, CX = 150, CY = 160, R = 130;
+        const MS_TO_MPH = 2.236936;
+        const MODES = [{ f: 3.6, u: 'KMH' }, { f: MS_TO_MPH, u: 'MPH' }, { f: 1.943844, u: 'KN' }];
+        const $ = id => document.getElementById(id);
+        const NS = 'http://www.w3.org/2000/svg';
+        const state = { speed: 0, rpm: 0, fuel: 1, health: 1, gear: 0, engine: false, headlights: 0, left: false, right: false, seatbelt: false, odometer: 0 };
+        let mode = 1;
+        const segs = [];
+
+        function pt(deg) {
+            const a = deg * Math.PI / 180;
+            return [(CX + R * Math.cos(a)).toFixed(2), (CY - R * Math.sin(a)).toFixed(2)];
+        }
+
+        function buildArc() {
+            const g = $('arc');
+            const step = 180 / N;
+            for (let i = 0; i < N; i++) {
+                const a1 = 180 - i * step - 0.9, a2 = 180 - (i + 1) * step + 0.9;
+                const [x1, y1] = pt(a1), [x2, y2] = pt(a2);
+                const p = document.createElementNS(NS, 'path');
+                p.setAttribute('d', 'M' + x1 + ' ' + y1 + ' A' + R + ' ' + R + ' 0 0 1 ' + x2 + ' ' + y2);
+                p.setAttribute('class', 'seg' + (((i + 1) / N * MAX) >= 8 ? ' hot' : ((i + 1) / N * MAX) >= 6 ? ' warn' : ''));
+                g.appendChild(p);
+                segs.push(p);
+            }
+        }
+
+        function setBar(id, value) {
+            const fill = $(id + '-fill');
+            fill.style.width = (value * 100) + '%';
+            fill.classList.toggle('warn', value < 0.4 && value >= 0.2);
+            fill.classList.toggle('low', value < 0.2);
+            $(id + '-text').textContent = Math.round(value * 100) + '%';
+        }
+
+        function render() {
+            const m = MODES[mode];
+            $('speed').textContent = Math.round(state.speed * m.f);
+            $('unit').textContent = m.u;
+            $('gear').textContent = state.gear < 0 ? 'R' : state.gear === 0 ? 'N' : String(state.gear);
+            $('odo').textContent = state.odometer.toFixed(1) + ' mi';
+            const lit = Math.round(Math.min(state.rpm, 1) * N);
+            segs.forEach((p, i) => p.classList.toggle('lit', i < lit));
+            setBar('fuel', state.fuel);
+            setBar('health', state.health);
+            $('ind-engine').classList.toggle('on', state.engine);
+            $('ind-lights').classList.toggle('on', state.headlights > 0);
+            $('ind-left').classList.toggle('on', state.left);
+            $('ind-left').classList.toggle('blink', state.left);
+            $('ind-right').classList.toggle('on', state.right);
+            $('ind-right').classList.toggle('blink', state.right);
+            $('ind-belt').classList.toggle('on', !state.seatbelt);
+            $('ind-belt').classList.toggle('blink', !state.seatbelt);
+        }
+
+        const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+        const num = (v, d) => { const n = Number(v); return Number.isFinite(n) ? n : d; };
+        const ratio = (v, d) => { const n = Number(v); if (!Number.isFinite(n)) return d; return n > 1 ? clamp(n, 0, 100) / 100 : clamp(n, 0, 1); };
+
+        function apply(p) {
+            if (!p || typeof p !== 'object') return;
+            if (p.data && typeof p.data === 'object') p = p.data;
+            if (p.visible !== undefined) $('hud').classList.toggle('hide', p.visible === false);
+            if (p.speed !== undefined) {
+                let s = num(p.speed, 0);
+                const unit = String(p.speedUnit || p.unit || '').toLowerCase();
+                if (['km/h', 'kmh', 'kph'].includes(unit)) s /= 3.6; else if (unit === 'mph') s /= MS_TO_MPH;
+                state.speed = Math.max(0, s);
+            }
+            if (p.rpm !== undefined) state.rpm = clamp(num(p.rpm, 0), 0, 1);
+            if (p.fuel !== undefined) state.fuel = ratio(p.fuel, state.fuel);
+            if (p.health !== undefined) state.health = ratio(p.health, state.health);
+            if (p.gear !== undefined) state.gear = Math.trunc(num(p.gear, 0));
+            if (p.engine !== undefined) state.engine = !!p.engine;
+            if (p.headlights !== undefined) state.headlights = typeof p.headlights === 'boolean' ? (p.headlights ? 1 : 0) : num(p.headlights, 0);
+            const left = p.leftIndicator !== undefined ? p.leftIndicator : p.left;
+            const right = p.rightIndicator !== undefined ? p.rightIndicator : p.right;
+            const belt = p.seatbelt !== undefined ? p.seatbelt : p.seatbeltFastened;
+            if (left !== undefined) state.left = !!left;
+            if (right !== undefined) state.right = !!right;
+            if (belt !== undefined) state.seatbelt = !!belt;
+            if (p.odometer !== undefined) state.odometer = Math.max(0, num(p.odometer, 0));
+            render();
+        }
+
+        window.addEventListener('message', e => {
+            try {
+                let d = e.data;
+                if (typeof d === 'string') d = JSON.parse(d);
+                if (d && typeof d === 'object') apply(d);
+            } catch (_) {}
+        });
+
+        const set = key => value => apply({ [key]: value });
+        ['Speed', 'RPM', 'Fuel', 'Health', 'Gear', 'Engine', 'Headlights', 'Odometer'].forEach(n => {
+            const key = { Speed: 'speed', RPM: 'rpm', Fuel: 'fuel', Health: 'health', Gear: 'gear', Engine: 'engine', Headlights: 'headlights', Odometer: 'odometer' }[n];
+            window['set' + n] = set(key);
+        });
+        window.setLeftIndicator = set('leftIndicator');
+        window.setRightIndicator = set('rightIndicator');
+        window.setSeatbelts = set('seatbelt');
+        window.setSpeedMode = m => { mode = clamp(Math.trunc(num(m, 1)), 0, MODES.length - 1); render(); };
+
+        buildArc();
+        apply({ speed: 30, rpm: 0.7, fuel: 0.4, health: 0.9, gear: 3, engine: true, seatbelt: false, leftIndicator: true, headlights: 1, odometer: 42.5 });
+    })();
+    </script>
+</body>
+</html>
