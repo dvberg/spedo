@@ -64,7 +64,9 @@ SAMC.config = {
     }
 
     function paintSpeed() {
-        speedFill.style.width = (clamp(speed / SPEED_MAX, 0, 1) * 100) + '%';
+        const r = clamp(speed / SPEED_MAX, 0, 1);
+        speedFill.style.width = (r * 100) + '%';
+        speedFill.style.background = r >= 0.85 ? 'var(--red)' : r >= 0.6 ? 'var(--amber)' : '';
     }
 
     function paintGear() {
@@ -179,7 +181,7 @@ SAMC.config = {
 
     function setBar(bar, value) {
         bar.fill.style.width = (value * 100) + '%';
-        bar.fill.classList.toggle('warn', value < 0.4 && value >= 0.2);
+        bar.fill.classList.toggle('warn', value < 0.5 && value >= 0.2);
         bar.fill.classList.toggle('low', value < 0.2);
         bar.text.textContent = Math.round(value * 100) + '%';
     }
@@ -197,11 +199,11 @@ SAMC.config = {
         setBar(el.health, state.health);
         el.engine.classList.toggle('on', state.engine);
         el.lights.classList.toggle('on', state.headlights > 0);
+        el.lights.classList.toggle('high', state.headlights >= 2);
         el.left.classList.toggle('on', state.leftIndicator);
-        el.left.classList.toggle('blink', state.leftIndicator);
         el.right.classList.toggle('on', state.rightIndicator);
-        el.right.classList.toggle('blink', state.rightIndicator);
         el.belt.classList.toggle('on', !state.seatbelt);
+        el.belt.classList.toggle('belted', state.seatbelt);
         el.belt.classList.toggle('blink', !state.seatbelt);
     }
 
@@ -542,6 +544,7 @@ SAMC.config = {
     let repeat = false, shuffle = false, seeking = false;
     let volume = 0.8, muted = false;
     let ytPlayer = null, ytPromise = null, ytReadyFlag = false;
+    let spCtrl = null, spApi = null, spPromise = null, spUri = null, spPaused = true, spPos = 0, spDur = 0, spEnded = false;
 
     const fmt = s => {
         const n = Math.floor(Number(s));
@@ -576,6 +579,13 @@ SAMC.config = {
             return { track: { type: 'yt', id, url: 'https://www.youtube.com/watch?v=' + id, title: 'YouTube ' + id } };
         }
 
+        if (h === 'open.spotify.com') {
+            const m = u.pathname.match(/^\/(?:intl-[a-z]{2}\/)?(track|album|playlist|episode|show)\/([A-Za-z0-9]{10,})/);
+            if (!m) return { error: 'Link Spotify tidak dikenali' };
+            const kind = m[1], id = m[2];
+            return { track: { type: 'spotify', uri: 'spotify:' + kind + ':' + id, url: 'https://open.spotify.com/' + kind + '/' + id, title: 'Spotify ' + kind } };
+        }
+
         let url = u.href;
         if (h === 'dropbox.com') {
             u.searchParams.set('dl', '1');
@@ -600,7 +610,7 @@ SAMC.config = {
     }
 
     const note = msg => { $('music-track-subtitle').textContent = msg; };
-    const label = t => (t.type === 'yt' ? 'YouTube' : 'Direct audio');
+    const label = t => (t.type === 'yt' ? 'YouTube' : t.type === 'spotify' ? 'Spotify' : 'Direct audio');
 
     function renderList() {
         const list = $('music-playlist');
@@ -662,8 +672,18 @@ SAMC.config = {
         stop() { if (ytReadyFlag) ytPlayer.stopVideo(); }
     };
 
-    const eng = () => (active === 'yt' ? ytEng : audioEng);
-    const loaded = () => (active === 'yt' ? !!ytCurrent : !!audio.getAttribute('src'));
+    const spEng = {
+        play() { spEnded = false; if (spCtrl) spCtrl.play(); },
+        pause() { if (spCtrl) spCtrl.pause(); },
+        playing: () => !!spCtrl && !spPaused,
+        seek(s) { if (spCtrl) spCtrl.seek(s); },
+        time: () => spPos / 1000,
+        length: () => (spDur > 0 ? spDur / 1000 : NaN),
+        stop() { if (spCtrl) spCtrl.pause(); }
+    };
+
+    const eng = () => (active === 'yt' ? ytEng : active === 'spotify' ? spEng : audioEng);
+    const loaded = () => (active === 'yt' ? !!ytCurrent : active === 'spotify' ? !!spUri : !!audio.getAttribute('src'));
 
     function applyVolume() {
         audio.volume = volume;
@@ -737,12 +757,63 @@ SAMC.config = {
         return ytPromise;
     }
 
+    function ensureSP() {
+        if (spPromise) return spPromise;
+        spPromise = new Promise((resolve, reject) => {
+            window.onSpotifyIframeApiReady = api => { spApi = api; resolve(); };
+            const s = document.createElement('script');
+            s.src = 'https://open.spotify.com/embed/iframe-api/v1';
+            s.async = true;
+            s.onerror = () => { spPromise = null; reject(new Error('spotify_api')); };
+            document.head.appendChild(s);
+        });
+        return spPromise;
+    }
+
+    function spLoad(uri) {
+        if (spCtrl) { spCtrl.loadUri(uri); return Promise.resolve(); }
+        return new Promise(resolve => {
+            spApi.createController($('spotify-player'), { uri, width: '300', height: '80' }, c => {
+                spCtrl = c;
+                c.addListener('playback_update', onSpState);
+                resolve();
+            });
+        });
+    }
+
+    function onSpState(e) {
+        const d = e.data || {};
+        spPaused = !!d.isPaused;
+        spPos = Number(d.position) || 0;
+        spDur = Number(d.duration) || 0;
+        if (active === 'spotify' && spPaused && !spEnded && spDur > 0 && spPos >= spDur - 1000) { spEnded = true; return next(true); }
+        playBtn();
+        progress();
+    }
+
+    function silence(keep) {
+        if (keep !== 'audio' && audio.getAttribute('src')) audioEng.stop();
+        if (keep !== 'yt' && ytReadyFlag) ytEng.stop();
+        if (keep !== 'spotify' && spCtrl) spCtrl.pause();
+    }
+
     function play(i) {
         if (i < 0 || i >= tracks.length) return;
         index = i;
         const t = tracks[i];
-        if (t.type === 'yt') {
-            if (audio.getAttribute('src')) audioEng.stop();
+        if (t.type === 'spotify') {
+            silence('spotify');
+            active = 'spotify';
+            spUri = t.uri;
+            spEnded = false;
+            meta();
+            note('Memuat Spotify…');
+            ensureSP()
+                .then(() => spLoad(t.uri))
+                .then(() => { spCtrl.play(); note('Spotify'); })
+                .catch(() => note('Spotify gagal dimuat, cek koneksi'));
+        } else if (t.type === 'yt') {
+            silence('yt');
             active = 'yt';
             ytCurrent = t.id;
             meta();
@@ -751,7 +822,7 @@ SAMC.config = {
                 .then(() => { ytPlayer.loadVideoById(t.id); note('YouTube'); })
                 .catch(() => note('YouTube gagal dimuat, cek koneksi'));
         } else {
-            if (ytReadyFlag) ytEng.stop();
+            silence('audio');
             active = 'audio';
             ytCurrent = null;
             meta();
@@ -797,7 +868,7 @@ SAMC.config = {
         volume = Number(vol.value) / 100;
         applyVolume();
         meta(); playBtn(); progress();
-        setInterval(() => { if (active === 'yt' && ytReadyFlag) progress(); }, 500);
+        setInterval(() => { if ((active === 'yt' && ytReadyFlag) || active === 'spotify') progress(); }, 500);
 
         $('btn-music-toggle').addEventListener('click', () => {
             const open = panel.classList.toggle('hide') === false;
@@ -844,9 +915,8 @@ SAMC.config = {
 
         $('btn-music-clear').addEventListener('click', () => {
             tracks = []; index = -1; save();
-            audioEng.stop();
-            if (ytReadyFlag) ytEng.stop();
-            active = null; ytCurrent = null;
+            silence(null);
+            active = null; ytCurrent = null; spUri = null;
             meta(); playBtn(); progress();
         });
         $('btn-music-repeat').addEventListener('click', e => { repeat = !repeat; e.currentTarget.classList.toggle('active', repeat); });
@@ -907,7 +977,7 @@ SAMC.config = {
             btn.addEventListener('click', () => {
                 const key = btn.dataset.demo;
                 if (key === 'gear') demo.gear = Number(btn.dataset.value);
-                else if (key === 'lights') demo.lights = demo.lights ? 0 : 3;
+                else if (key === 'lights') demo.lights = (demo.lights + 1) % 3;
                 else demo[key] = !demo[key];
                 if (key !== 'gear') btn.classList.toggle('on', !!demo[key]);
                 send();

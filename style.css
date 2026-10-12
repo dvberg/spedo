@@ -117,7 +117,7 @@ input { font-family: inherit; }
 .stat-head { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 8px; font-weight: 700; letter-spacing: 1.5px; color: var(--dim); }
 .bar { height: 3px; background: var(--faint); }
 .bar-fill { height: 100%; width: 100%; background: var(--white); transition: width .25s ease, background-color .25s ease; }
-.bar-fill.warn { background: var(--amber); }
+.bar-fill.warn { background: var(--red); }
 .bar-fill.low { background: var(--red); animation: blink 1s steps(1) infinite; }
 
 /* Indicators */
@@ -132,7 +132,8 @@ input { font-family: inherit; }
 .ind { height: 16px; min-width: 16px; display: flex; align-items: center; justify-content: center; }
 .ind svg { width: 16px; height: 16px; fill: rgba(255, 255, 255, .14); }
 .ind-arrow.on svg { fill: var(--green); }
-.ind-lights.on svg { fill: var(--blue); }
+.ind-lights.on svg { fill: var(--green); }
+.ind-lights.high svg { fill: var(--blue); }
 .chip {
     padding: 3px 5px;
     border: 1px solid var(--line);
@@ -142,6 +143,7 @@ input { font-family: inherit; }
     letter-spacing: 1px;
     color: var(--dim);
 }
+.ind-belt.belted .chip { border-color: var(--green); color: var(--green); }
 .ind-belt.on .chip { border-color: var(--red); color: var(--red); animation: blink 1s steps(1) infinite; }
 .ind-engine .chip { border-color: var(--red); color: var(--red); }
 .ind-engine.on .chip { border-color: var(--green); color: var(--green); }
@@ -334,6 +336,7 @@ input { font-family: inherit; }
 .music-add .btn { min-width: 34px; padding: 0; }
 .music-hint { margin-top: 6px; font-size: 8px; letter-spacing: .4px; line-height: 1.5; color: var(--dim); }
 .yt-host { position: fixed; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; z-index: -1; }
+.spotify-host { position: fixed; left: 0; top: 0; width: 300px; height: 80px; overflow: hidden; opacity: 0; pointer-events: none; z-index: -1; }
 .music-tools { display: flex; gap: 6px; margin-top: 8px; }
 .tool { flex: 1; height: 26px; background: var(--faint); color: rgba(255, 255, 255, .6); font-size: 13px; }
 .tool:hover { color: #fff; }
