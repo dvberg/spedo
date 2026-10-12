@@ -285,7 +285,7 @@ SAMC.config = {
             const $ = id => document.getElementById(id);
             el.root = $('speedometer');
             el.speed = $('speed-display');
-            el.unit = document.querySelector('.readout .unit');
+            el.unit = document.querySelector('#speedometer .unit');
             el.odo = $('odometer');
             el.fuel = bar('fuel');
             el.health = bar('health');
