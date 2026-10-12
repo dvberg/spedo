@@ -328,6 +328,8 @@ input { font-family: inherit; }
 }
 .music-add input:focus { border-color: var(--amber); }
 .music-add .btn { min-width: 34px; padding: 0; }
+.music-hint { margin-top: 6px; font-size: 6.5px; letter-spacing: .4px; line-height: 1.5; color: var(--dim); }
+.yt-host { position: fixed; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; z-index: -1; }
 .music-tools { display: flex; gap: 6px; margin-top: 8px; }
 .tool { flex: 1; height: 26px; background: var(--faint); color: rgba(255, 255, 255, .6); font-size: 13px; }
 .tool:hover { color: #fff; }

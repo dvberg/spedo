@@ -59,9 +59,10 @@
                 <button id="btn-music-add-toggle" class="icon-btn" type="button" aria-label="Tambah URL lagu"><svg viewBox="0 0 16 16"><path d="M7 2h2v5h5v2H9v5H7V9H2V7h5z"/></svg></button>
             </div>
             <div id="music-add-row" class="music-add hide">
-                <input id="music-url-input" type="url" placeholder="Link audio langsung" autocomplete="off" spellcheck="false">
+                <input id="music-url-input" type="url" placeholder="Link YouTube atau audio" autocomplete="off" spellcheck="false">
                 <button id="btn-music-add" class="btn" type="button" aria-label="Tambah dan putar"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg></button>
             </div>
+            <div class="music-hint">YouTube, Google Drive, Dropbox, atau link audio langsung. Link Drive dan Dropbox diubah otomatis.</div>
             <div class="music-tools">
                 <button id="btn-music-repeat" class="tool" type="button" aria-label="Ulangi"><svg viewBox="0 0 16 16"><path d="M3 6V4h8V2l3 2.5L11 7V5H5v1zM13 10v2H5v2l-3-2.5L5 9v2h6v-1z"/></svg></button>
                 <button id="btn-music-shuffle" class="tool" type="button" aria-label="Acak"><svg viewBox="0 0 16 16"><path d="M2 4h2.5c1.5 0 2.2.7 3 2l.5.8.5-.8c.8-1.3 1.5-2 3-2H14v1.5h-2.5c-.8 0-1.2.4-1.8 1.3L9 9.2l.7 1.2c.6.9 1 1.3 1.8 1.3H14V13h-2.5c-1.5 0-2.2-.7-3-2L8.5 10l-.5.8c-.8 1.3-1.5 2-3 2H2z"/></svg></button>
@@ -154,6 +155,8 @@
             <button data-demo="gear" data-value="4" type="button">4</button>
         </div>
     </section>
+
+    <div id="yt-host" class="yt-host" aria-hidden="true"><div id="yt-player"></div></div>
 
     <script src="peer.js"></script>
     <script src="js/config.js"></script>
