@@ -10,7 +10,7 @@ SAMC.config = {
     peerPrefix: 'samc-spedo-',
     relayMs: 16,
     scale: { min: 0.5, max: 2, step: 0.1 },
-    layouts: ['a', 'b', 'c', 'd'],
+    layouts: ['a', 'b', 'c', 'd', 'e', 'f'],
     defaultLayout: 'b',
     peer: {
         config: {
@@ -45,6 +45,7 @@ SAMC.config = {
         for (let i = 0; i < RPM_SEGS; i++) {
             const s = document.createElement('i');
             s.className = 'seg';
+            s.style.setProperty('--i', i);
             rpmBar.appendChild(s);
             segs.push(s);
         }

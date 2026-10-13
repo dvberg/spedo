@@ -1,0 +1,225 @@
+/* Layout F: LCD Transparan - tata letak speedometer LCD motor tanpa bezel, elemen melayang dengan glow dan bayangan lembut.
+   Bar RPM vertikal di kiri speed, sein di atas speed, belt/light/engine sejajar odometer di bawah MPH, lalu baris fuel dan health. Kanvas 480x200. */
+body[data-layout="f"] {
+    --f-blue: #8fc4ff;
+    --f-blue-dim: rgba(143, 196, 255, .14);
+    --f-blue-line: rgba(143, 196, 255, .4);
+    --f-glow: 0 0 8px rgba(143, 196, 255, .7);
+    --f-shadow: drop-shadow(0 1px 3px rgba(0, 0, 0, .85)) drop-shadow(0 0 10px rgba(0, 0, 0, .5));
+}
+
+body[data-layout="f"] .hud { left: auto; right: 24px; bottom: 24px; }
+body[data-layout="f"] .topbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    width: auto;
+    margin: 0 0 6px;
+    opacity: 0;
+    transition: opacity .2s;
+}
+body[data-layout="f"] .hud:hover .topbar,
+body[data-layout="f"] .hud:focus-within .topbar { opacity: 1; }
+
+body[data-layout="f"] .cluster {
+    position: relative;
+    width: 480px;
+    height: 200px;
+    padding: 0;
+    background: none;
+    border: 0;
+    display: block;
+    filter: var(--f-shadow);
+}
+
+/* RPM: 24 segmen ditumpuk vertikal di kiri speed, kuning dan merah dari app.js */
+body[data-layout="f"] .rpm { position: absolute; inset: 0; margin: 0; }
+body[data-layout="f"] .seg-bar { position: absolute; inset: 0; display: block; height: auto; gap: 0; }
+body[data-layout="f"] .seg {
+    position: absolute;
+    left: 34px;
+    top: calc(2px + (23 - var(--i)) * 5.9px);
+    width: 46px;
+    height: 9px;
+    transform: skewX(-25deg);
+    background: var(--f-blue-dim);
+    outline: 1px solid var(--f-blue-line);
+    outline-offset: -1px;
+}
+body[data-layout="f"] .seg.on { background: var(--f-blue); outline-color: transparent; box-shadow: var(--f-glow); }
+body[data-layout="f"] .seg.on.warn { background: #ffd24a; box-shadow: 0 0 8px rgba(255, 210, 74, .75); }
+body[data-layout="f"] .seg.on.hot { background: var(--red); box-shadow: 0 0 8px rgba(255, 59, 78, .85); }
+body[data-layout="f"] .seg:nth-child(even) { display: none; }
+body[data-layout="f"] .rpm-scale { display: none; }
+
+/* Speed dan odometer */
+body[data-layout="f"] .main-row { display: contents; }
+body[data-layout="f"] .readout {
+    position: absolute;
+    left: 92px;
+    top: 24px;
+    width: 250px;
+    height: 116px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: 1fr auto;
+    align-items: end;
+    justify-items: start;
+    background: linear-gradient(90deg, rgba(38, 224, 138, .28), rgba(143, 196, 255, .1) 55%, transparent);
+    border-left: 3px solid var(--green);
+    box-sizing: border-box;
+    padding-left: 10px;
+}
+body[data-layout="f"] #speed-display {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 88px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--green);
+    text-shadow: 0 0 16px rgba(38, 224, 138, .55);
+}
+body[data-layout="f"] .readout .unit {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0 0 8px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--f-blue);
+}
+body[data-layout="f"] .readout .odo {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    height: 24px;
+    margin: 0;
+    padding-top: 6px;
+    border-top: 2px solid var(--f-blue-line);
+    text-align: left;
+    font-size: 14px;
+    line-height: 18px;
+    letter-spacing: 1px;
+    color: var(--f-blue);
+}
+
+/* Gear: kotak kecil dan tenang, angka biru. N dan R tetap diwarnai app.js */
+body[data-layout="f"] .gear {
+    position: absolute;
+    left: 376px;
+    top: 82px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid var(--f-blue-line);
+    border-radius: 6px;
+}
+body[data-layout="f"] .gear::before {
+    content: 'GEAR';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -13px;
+    text-align: center;
+    font-size: 8px;
+    letter-spacing: 3px;
+    color: var(--f-blue);
+}
+body[data-layout="f"] #gear-display {
+    font-size: 28px;
+    line-height: 1;
+    color: var(--f-blue);
+}
+/* Fuel (kiri) dan engine/health (kanan): baris di bawah speed dan gear. Ikon dalam lencana, bar miring bersegmen, persen di ujung */
+body[data-layout="f"] .speed-track { display: none; }
+body[data-layout="f"] .stats { display: contents; }
+body[data-layout="f"] .stat {
+    position: absolute;
+    top: 166px;
+    width: 206px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+body[data-layout="f"] .stat:nth-child(1) { left: 40px; }
+body[data-layout="f"] .stat:nth-child(2) { left: 262px; }
+body[data-layout="f"] .stat::before {
+    content: '';
+    flex: none;
+    width: 28px;
+    height: 28px;
+    background: var(--f-blue);
+    -webkit-mask: center / 22px no-repeat;
+    mask: center / 22px no-repeat;
+    filter: drop-shadow(0 0 5px rgba(143, 196, 255, .8));
+}
+body[data-layout="f"] .stat:nth-child(1)::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M4 3h10v18H4zM6 6v5h6V6zM16 9l3 3v6a1.5 1.5 0 0 0 3 0V11l-2-2z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M4 3h10v18H4zM6 6v5h6V6zM16 9l3 3v6a1.5 1.5 0 0 0 3 0V11l-2-2z'/%3E%3C/svg%3E");
+}
+body[data-layout="f"] .stat:nth-child(2)::before {
+    background: var(--green);
+    filter: drop-shadow(0 0 5px rgba(38, 224, 138, .8));
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z'/%3E%3C/svg%3E");
+}
+body[data-layout="f"] .stat-head { order: 3; margin: 0; width: 42px; font-size: 12px; text-align: right; color: #fff; font-weight: 700; text-shadow: 0 0 6px rgba(143, 196, 255, .6); }
+body[data-layout="f"] .stat-head span:first-child { position: absolute; left: 38px; top: -8px; font-size: 8px; letter-spacing: 2px; color: var(--f-blue); text-shadow: none; }
+body[data-layout="f"] .stat .bar {
+    order: 2;
+    flex: 1;
+    height: 22px;
+    padding: 3px;
+    box-sizing: border-box;
+    transform: skewX(-20deg);
+    background: linear-gradient(180deg, rgba(143, 196, 255, .05), var(--f-blue-dim));
+    border: 1px solid var(--f-blue-line);
+}
+body[data-layout="f"] .stat .bar-fill {
+    height: 100%;
+    background: repeating-linear-gradient(90deg, var(--f-blue) 0 8px, transparent 8px 11px);
+    box-shadow: var(--f-glow);
+}
+body[data-layout="f"] .stat:nth-child(2) .bar-fill {
+    background: repeating-linear-gradient(90deg, var(--green) 0 8px, transparent 8px 11px);
+    box-shadow: 0 0 8px rgba(38, 224, 138, .55);
+}
+body[data-layout="f"] .stat .bar-fill.warn,
+body[data-layout="f"] .stat .bar-fill.low {
+    background: repeating-linear-gradient(90deg, var(--red) 0 8px, transparent 8px 11px);
+    box-shadow: 0 0 8px rgba(255, 59, 78, .75);
+}
+
+/* Indikator: sein di atas speed, belt/light/engine sejajar odometer di bawah MPH */
+body[data-layout="f"] .indicators { display: contents; }
+body[data-layout="f"] .ind { position: absolute; }
+body[data-layout="f"] .ind svg { width: 22px; height: 22px; }
+body[data-layout="f"] #indicator-left { left: 92px; top: 0; }
+body[data-layout="f"] #indicator-right { left: 324px; top: 0; }
+body[data-layout="f"] #indicator-seatbelt { left: 256px; top: 122px; }
+body[data-layout="f"] #indicator-headlights { left: 288px; top: 122px; }
+body[data-layout="f"] #indicator-engine { left: 320px; top: 122px; }
+body[data-layout="f"] .ind-lights.high svg { fill: var(--blue); }
+/* Belt dan engine: chip teks diganti ikon, warna tetap mengikuti status dari style.css */
+body[data-layout="f"] .chip { font-size: 0; width: 22px; height: 22px; padding: 0; border: 0 !important; background: transparent !important; box-shadow: none; display: block; }
+body[data-layout="f"] .chip::before {
+    content: '';
+    display: block;
+    width: 22px;
+    height: 22px;
+    background: currentColor;
+    -webkit-mask: center / contain no-repeat;
+    mask: center / contain no-repeat;
+}
+body[data-layout="f"] .ind-belt .chip::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm-6 9h12l2 11h-3l-1-5-2 1v4h-4v-4l-2-1-1 5H4z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm-6 9h12l2 11h-3l-1-5-2 1v4h-4v-4l-2-1-1 5H4z'/%3E%3C/svg%3E");
+}
+body[data-layout="f"] .ind-engine .chip::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 3h6v2h-2v2h3l2 2h2V8h2v8h-2v-2h-2v3l-2 2H9l-2-2v-2H4v-3H2V9h2v2h3V8l2-2z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 3h6v2h-2v2h3l2 2h2V8h2v8h-2v-2h-2v3l-2 2H9l-2-2v-2H4v-3H2V9h2v2h3V8l2-2z'/%3E%3C/svg%3E");
+}

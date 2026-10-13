@@ -10,11 +10,22 @@ Sync antar layar memakai PeerJS:
 - `?mode=host` untuk host
 - `?mode=client&code=XXXXXX` untuk client
 
+## Layout
+
+Pilih layout lewat `?layout=a` sampai `?layout=f`. Pilihan disimpan di localStorage (`spedo_layout`), dan default-nya layout `b`. Bisa juga diganti lewat kode: `SAMCSpeedo.setLayout('f')`.
+
+- `a`: ringkas
+- `b`: tengah (default)
+- `c`: lebar
+- `d`: vertikal
+- `e`: Ghost, melayang tanpa panel
+- `f`: LCD transparan, bar RPM vertikal dan latar speed gradasi
+
 ## Satuan
 
 - Speed: meter per detik (m/s). Bisa diberi `speedUnit: 'km/h'`, `'kmh'`, `'kph'`, atau `'mph'` agar dikonversi otomatis.
-- RPM: 0–1.
-- Fuel dan health: 0–1, atau 0–100 (dikonversi otomatis).
+- RPM: 0â€“1.
+- Fuel dan health: 0â€“1, atau 0â€“100 (dikonversi otomatis).
 - Odometer: mil.
 
 ## Fungsi global
@@ -24,9 +35,9 @@ Semua fungsi ini tersedia di `window`:
 ```javascript
 setEngine(true);
 setSpeed(25);          // m/s
-setRPM(0.55);          // 0–1
-setFuel(0.75);         // 0–1
-setHealth(0.9);        // 0–1
+setRPM(0.55);          // 0â€“1
+setFuel(0.75);         // 0â€“1
+setHealth(0.9);        // 0â€“1
 setGear(3);
 setHeadlights(1);      // 0 = mati, 1 = nyala
 setLeftIndicator(true);
@@ -64,9 +75,10 @@ Action yang dikenali: `vehicle`, `speedometer`, `update`, `telemetry`, dan `visi
 
 ## Musik
 
-Panel musik (tombol ♫ di kiri atas) mendukung:
+Panel musik (tombol â™« di kiri atas) mendukung:
 - Link YouTube
 - Link audio langsung
+- Link Spotify (ditampilkan lewat embed)
 - Link Google Drive dan Dropbox (otomatis diubah ke tautan unduhan)
 
 Pemutaran YouTube bisa gagal di lingkungan yang membatasi embed (misalnya NUI). Pesan error akan tampil di panel musik dengan kodenya.
@@ -78,7 +90,8 @@ Animasi kedip dinonaktifkan jika sistem meminta `prefers-reduced-motion`.
 ## Struktur file
 
 - `index.html`: markup HUD, panel musik, panel sync, dan panel demo
-- `style.css`: seluruh gaya
+- `style.css`: gaya dasar
+- `layouts/`: satu file CSS per layout
 - `app.js`: logika HUD, telemetry, musik, sync, dan demo
 - `peer.js`: library PeerJS (vendor, jangan diubah)
 - `assets/`: font Formula1
