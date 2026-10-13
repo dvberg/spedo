@@ -1,10 +1,10 @@
 /* Layout F: LCD Transparan - tata letak speedometer LCD motor tanpa bezel, elemen melayang dengan glow dan bayangan lembut.
    Bar RPM vertikal di kiri speed, sein di atas speed, belt/light/engine sejajar odometer di bawah MPH, lalu baris fuel dan health. Kanvas 480x200. */
 body[data-layout="f"] {
-    --f-blue: #8fc4ff;
-    --f-blue-dim: rgba(143, 196, 255, .14);
-    --f-blue-line: rgba(143, 196, 255, .4);
-    --f-glow: 0 0 8px rgba(143, 196, 255, .7);
+    --f-blue: #7fdcf0;
+    --f-blue-dim: rgba(127, 220, 240, .13);
+    --f-blue-line: rgba(127, 220, 240, .38);
+    --f-glow: 0 0 8px rgba(127, 220, 240, .65);
     --f-shadow: drop-shadow(0 1px 3px rgba(0, 0, 0, .85)) drop-shadow(0 0 10px rgba(0, 0, 0, .5));
 }
 
@@ -59,14 +59,14 @@ body[data-layout="f"] .readout {
     position: absolute;
     left: 92px;
     top: 24px;
-    width: 250px;
+    width: 340px;
     height: 116px;
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-rows: 1fr auto;
     align-items: end;
     justify-items: start;
-    background: linear-gradient(90deg, rgba(38, 224, 138, .28), rgba(143, 196, 255, .1) 55%, transparent);
+    background: linear-gradient(90deg, rgba(38, 224, 138, .32), rgba(30, 170, 190, .16) 50%, rgba(127, 220, 240, .05) 80%, transparent);
     border-left: 3px solid var(--green);
     box-sizing: border-box;
     padding-left: 10px;
@@ -100,20 +100,20 @@ body[data-layout="f"] .readout .odo {
     font-size: 14px;
     line-height: 18px;
     letter-spacing: 1px;
-    color: var(--f-blue);
+    color: #bdeefa;
 }
 
 /* Gear: kotak kecil dan tenang, angka biru. N dan R tetap diwarnai app.js */
 body[data-layout="f"] .gear {
     position: absolute;
     left: 376px;
-    top: 82px;
-    width: 56px;
-    height: 56px;
+    top: 44px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: none;
+    background: rgba(0, 12, 20, .45);
     border: 1px solid var(--f-blue-line);
     border-radius: 6px;
 }
@@ -122,16 +122,17 @@ body[data-layout="f"] .gear::before {
     position: absolute;
     left: 0;
     right: 0;
-    top: -13px;
+    top: -12px;
     text-align: center;
-    font-size: 8px;
+    font-size: 7px;
     letter-spacing: 3px;
     color: var(--f-blue);
 }
 body[data-layout="f"] #gear-display {
-    font-size: 28px;
+    font-size: 24px;
     line-height: 1;
-    color: var(--f-blue);
+    color: #e6fbff;
+    text-shadow: 0 0 8px rgba(127, 220, 240, .6);
 }
 /* Fuel (kiri) dan engine/health (kanan): baris di bawah speed dan gear. Ikon dalam lencana, bar miring bersegmen, persen di ujung */
 body[data-layout="f"] .speed-track { display: none; }
@@ -155,7 +156,7 @@ body[data-layout="f"] .stat::before {
     background: var(--f-blue);
     -webkit-mask: center / 22px no-repeat;
     mask: center / 22px no-repeat;
-    filter: drop-shadow(0 0 5px rgba(143, 196, 255, .8));
+    filter: drop-shadow(0 0 5px rgba(127, 220, 240, .8));
 }
 body[data-layout="f"] .stat:nth-child(1)::before {
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M4 3h10v18H4zM6 6v5h6V6zM16 9l3 3v6a1.5 1.5 0 0 0 3 0V11l-2-2z'/%3E%3C/svg%3E");
@@ -199,10 +200,10 @@ body[data-layout="f"] .indicators { display: contents; }
 body[data-layout="f"] .ind { position: absolute; }
 body[data-layout="f"] .ind svg { width: 22px; height: 22px; }
 body[data-layout="f"] #indicator-left { left: 92px; top: 0; }
-body[data-layout="f"] #indicator-right { left: 324px; top: 0; }
-body[data-layout="f"] #indicator-seatbelt { left: 256px; top: 122px; }
-body[data-layout="f"] #indicator-headlights { left: 288px; top: 122px; }
-body[data-layout="f"] #indicator-engine { left: 320px; top: 122px; }
+body[data-layout="f"] #indicator-right { left: 398px; top: 0; }
+body[data-layout="f"] #indicator-seatbelt { left: 348px; top: 122px; }
+body[data-layout="f"] #indicator-headlights { left: 380px; top: 122px; }
+body[data-layout="f"] #indicator-engine { left: 410px; top: 122px; }
 body[data-layout="f"] .ind-lights.high svg { fill: var(--blue); }
 /* Belt dan engine: chip teks diganti ikon, warna tetap mengikuti status dari style.css */
 body[data-layout="f"] .chip { font-size: 0; width: 22px; height: 22px; padding: 0; border: 0 !important; background: transparent !important; box-shadow: none; display: block; }
