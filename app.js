@@ -201,7 +201,8 @@ SAMC.config = {
         SAMC.gauge.setSpeedMph(mph);
         SAMC.gauge.setRpm(state.rpm);
         SAMC.gauge.setGear(state.gear);
-        el.speed.classList.toggle('over', mph > custom.speed);
+        const shown = Math.round(state.speed * mode.factor);
+        el.speed.classList.toggle('over', shown > custom.speed);
         setBar(el.fuel, state.fuel, custom.fuel / 100);
         setBar(el.health, state.health);
         el.engine.classList.toggle('on', state.engine);
@@ -211,7 +212,7 @@ SAMC.config = {
         el.right.classList.toggle('on', state.rightIndicator);
         el.belt.classList.toggle('on', !state.seatbelt);
         el.belt.classList.toggle('belted', state.seatbelt);
-        el.belt.classList.toggle('blink', !state.seatbelt && mph >= custom.belt);
+        el.belt.classList.toggle('blink', !state.seatbelt && shown >= custom.belt);
     }
 
     function saveCustom() {
@@ -220,8 +221,10 @@ SAMC.config = {
 
     function loadCustom() {
         try {
-            const s = JSON.parse(localStorage.getItem(cfg.storage.custom));
-            if (!s) return;
+            const text = localStorage.getItem(cfg.storage.custom);
+            if (!text || text.length > 2048) return;
+            const s = JSON.parse(text);
+            if (!s || typeof s !== 'object') return;
             if (/^#[0-9a-f]{6}$/i.test(s.accent)) custom.accent = s.accent;
             custom.opacity = clamp(num(s.opacity, 100), 40, 100);
             custom.speed = clamp(num(s.speed, 80), 30, 160);
@@ -243,11 +246,11 @@ SAMC.config = {
         $('cp-opacity').value = custom.opacity;
         $('cp-opacity-val').textContent = custom.opacity + '%';
         $('cp-speed').value = custom.speed;
-        $('cp-speed-val').textContent = custom.speed + ' MPH';
+        $('cp-speed-val').textContent = custom.speed + ' ' + SPEED_MODES[speedMode].unit;
         $('cp-fuel').value = custom.fuel;
         $('cp-fuel-val').textContent = custom.fuel + '%';
         $('cp-belt').value = custom.belt;
-        $('cp-belt-val').textContent = custom.belt + ' MPH';
+        $('cp-belt-val').textContent = custom.belt + ' ' + SPEED_MODES[speedMode].unit;
         document.querySelectorAll('#cp-swatches .swatch').forEach(b =>
             b.setAttribute('aria-pressed', String(b.dataset.accent.toLowerCase() === custom.accent.toLowerCase())));
         render();
@@ -287,7 +290,8 @@ SAMC.config = {
         const toggle = open => {
             panel.classList.toggle('hide', !open);
             btn.setAttribute('aria-expanded', String(open));
-            if (open) { applyCustom(); placeFloating(panel); }
+            if (open) { applyCustom(); placeFloating(panel); $('cp-swatches').querySelector('.swatch').focus(); }
+            else if (document.activeElement && panel.contains(document.activeElement)) btn.focus();
         };
         btn.addEventListener('click', () => toggle(panel.classList.contains('hide')));
         $('btn-custom-close').addEventListener('click', () => toggle(false));
@@ -304,6 +308,27 @@ SAMC.config = {
         });
         bind('cp-opacity', 'opacity'); bind('cp-speed', 'speed'); bind('cp-fuel', 'fuel'); bind('cp-belt', 'belt');
         $('cp-size').addEventListener('input', e => { setScale(Number(e.target.value) / 100); });
+        const box = $('cp-json');
+        $('btn-custom-export').addEventListener('click', () => {
+            box.value = JSON.stringify({ accent: custom.accent, opacity: custom.opacity, speed: custom.speed, fuel: custom.fuel, belt: custom.belt, scale: layout.scale, layout: API.getLayout() });
+            box.select();
+            try { if (navigator.clipboard) navigator.clipboard.writeText(box.value).catch(() => {}); } catch (_) {}
+        });
+        $('btn-custom-import').addEventListener('click', () => {
+            try {
+                if (box.value.length > 2048) throw new Error('terlalu besar');
+                const s = JSON.parse(box.value);
+                if (!s || typeof s !== 'object') throw new Error('bukan objek');
+                if (/^#[0-9a-f]{6}$/i.test(s.accent)) custom.accent = s.accent;
+                custom.opacity = clamp(num(s.opacity, custom.opacity), 40, 100);
+                custom.speed = clamp(num(s.speed, custom.speed), 30, 160);
+                custom.fuel = clamp(num(s.fuel, custom.fuel), 5, 50);
+                custom.belt = clamp(num(s.belt, custom.belt), 0, 40);
+                if (s.scale !== undefined) setScale(num(s.scale, 1));
+                if (typeof s.layout === 'string') API.setLayout(s.layout);
+                saveCustom(); applyCustom(); box.value = ''; box.placeholder = 'Impor berhasil';
+            } catch (_) { box.value = ''; box.placeholder = 'JSON tidak valid'; }
+        });
         $('btn-custom-reset').addEventListener('click', () => {
             Object.assign(custom, customDefaults);
             saveCustom(); setScale(1); applyCustom();
@@ -456,19 +481,21 @@ SAMC.config = {
         },
 
         setState,
+        applyRemote(data) { setState(normalize(data), false); },
         placePanel: placeFloating,
         getState: () => Object.assign({}, state),
         reset() { setState(normalize({ speed: 0, rpm: 0, fuel: 1, health: 1, gear: 0, engine: false, headlights: 0, left: false, right: false, seatbelt: false, odometer: 0 }), false); },
         setVisible(v) { el.root.classList.toggle('hide', !v); },
         setSpeedMode(mode) {
             speedMode = clamp(Math.trunc(num(mode, 1)), 0, SPEED_MODES.length - 1);
-            render();
+            if (el.root) applyCustom(); else render();
         },
         setLayout(name) {
             const key = String(name || '').toLowerCase();
             const next = cfg.layouts.includes(key) ? key : cfg.defaultLayout;
             document.body.setAttribute('data-layout', next);
             try { localStorage.setItem(cfg.storage.variant, next); } catch (_) {}
+            if (el.root) requestAnimationFrame(clampToViewport);
             return next;
         },
         getLayout: () => document.body.getAttribute('data-layout'),
@@ -601,8 +628,9 @@ SAMC.config = {
             });
             link.on('data', raw => {
                 try {
+                    if (typeof raw === 'string' && raw.length > 4096) return;
                     const msg = typeof raw === 'string' ? JSON.parse(raw) : raw;
-                    if (msg && msg.type === 'telemetry' && msg.data) SAMC.hud.setState(msg.data, false);
+                    if (msg && msg.type === 'telemetry' && msg.data && typeof msg.data === 'object') SAMC.hud.applyRemote(msg.data);
                 } catch (e) { console.error('[sync] bad data', e); }
             });
             link.on('close', () => { if (role === 'client') stop('Host disconnected'); });
@@ -734,7 +762,8 @@ SAMC.config = {
 
     function load() {
         try {
-            const raw = JSON.parse(localStorage.getItem(KEY));
+            const text = localStorage.getItem(KEY);
+            const raw = text && text.length <= 200000 ? JSON.parse(text) : null;
             tracks = (Array.isArray(raw) ? raw : []).map((t, i) => {
                 const r = parse(t && (t.url || t.id), i + 1);
                 return r.track ? Object.assign(r.track, { title: String(t.title || r.track.title).slice(0, 100) }) : null;
@@ -751,7 +780,7 @@ SAMC.config = {
         if (!tracks.length) {
             const e = document.createElement('div');
             e.className = 'music-empty';
-            e.textContent = 'Belum ada lagu. Tekan ï¼‹ untuk tempel link audio atau YouTube.';
+            e.textContent = 'Belum ada lagu. Tekan ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¼ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ untuk tempel link audio atau YouTube.';
             list.appendChild(e);
             return;
         }
@@ -940,7 +969,7 @@ SAMC.config = {
             spUri = t.uri;
             spEnded = false;
             meta();
-            note('Memuat Spotifyâ€¦');
+            note('Memuat SpotifyÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦');
             ensureSP()
                 .then(() => spLoad(t.uri))
                 .then(() => { spCtrl.play(); note('Spotify'); })
@@ -950,7 +979,7 @@ SAMC.config = {
             active = 'yt';
             ytCurrent = t.id;
             meta();
-            note('Memuat YouTubeâ€¦');
+            note('Memuat YouTubeÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦');
             ensureYT()
                 .then(() => { ytPlayer.loadVideoById(t.id); note('YouTube'); })
                 .catch(() => note('YouTube gagal dimuat, cek koneksi'));
@@ -959,9 +988,9 @@ SAMC.config = {
             active = 'audio';
             ytCurrent = null;
             meta();
-            note('Memuat audioâ€¦');
+            note('Memuat audioÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦');
             audio.src = t.url;
-            audio.play().then(() => note('Direct audio')).catch(() => note('Tekan â–¶ atau periksa URL'));
+            audio.play().then(() => note('Direct audio')).catch(() => note('Tekan ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶ atau periksa URL'));
         }
         playBtn();
         progress();

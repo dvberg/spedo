@@ -30,12 +30,14 @@ Tombol slider di toolbar HUD membuka panel pengaturan: warna aksen, ukuran, opas
 - Sabuk belum dipasang dan speed di atas ambang: ikon sabuk berkedip.
 - Fokus HUD (Tab) lalu panah untuk menggeser 8px, Shift 24px. HUD dijaga tetap di dalam layar.
 - Panel musik dan pengaturan muncul di sisi yang lebih lega.
+- Ambang speed dan sabuk mengikuti satuan yang tampil (KMH, MPH, Knots).
+- Ekspor menyalin pengaturan sebagai JSON, Impor memuatnya kembali (nilai di luar rentang dijepit).
 
 ## Satuan
 
 - Speed: meter per detik (m/s). Bisa diberi `speedUnit: 'km/h'`, `'kmh'`, `'kph'`, atau `'mph'` agar dikonversi otomatis.
-- RPM: 0Ã¢â‚¬â€œ1.
-- Fuel dan health: 0Ã¢â‚¬â€œ1, atau 0Ã¢â‚¬â€œ100 (dikonversi otomatis).
+- RPM: 0ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“1.
+- Fuel dan health: 0ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“1, atau 0ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“100 (dikonversi otomatis).
 - Odometer: mil.
 
 ## Fungsi global
@@ -45,9 +47,9 @@ Semua fungsi ini tersedia di `window`:
 ```javascript
 setEngine(true);
 setSpeed(25);          // m/s
-setRPM(0.55);          // 0Ã¢â‚¬â€œ1
-setFuel(0.75);         // 0Ã¢â‚¬â€œ1
-setHealth(0.9);        // 0Ã¢â‚¬â€œ1
+setRPM(0.55);          // 0ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“1
+setFuel(0.75);         // 0ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“1
+setHealth(0.9);        // 0ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“1
 setGear(3);
 setHeadlights(1);      // 0 = mati, 1 = nyala
 setLeftIndicator(true);
@@ -85,7 +87,7 @@ Action yang dikenali: `vehicle`, `speedometer`, `update`, `telemetry`, dan `visi
 
 ## Musik
 
-Panel musik (tombol Ã¢â„¢Â« di kiri atas) mendukung:
+Panel musik (tombol ÃƒÂ¢Ã¢â€žÂ¢Ã‚Â« di kiri atas) mendukung:
 - Link YouTube
 - Link audio langsung
 - Link Spotify (ditampilkan lewat embed)
@@ -105,3 +107,7 @@ Animasi kedip dinonaktifkan jika sistem meminta `prefers-reduced-motion`.
 - `app.js`: logika HUD, telemetry, musik, sync, dan demo
 - `peer.js`: library PeerJS (vendor, jangan diubah)
 - `assets/`: font Formula1
+
+## Uji
+
+Buka 	ests/smoke.html di browser (file:// perlu --allow-file-access-from-files). Hasilnya ringkasan lolos/gagal per layout A-F.

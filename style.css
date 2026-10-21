@@ -160,7 +160,7 @@ input { font-family: inherit; }
 @keyframes blink { 50% { opacity: .2; } }
 
 @media (prefers-reduced-motion: reduce) {
-    .blink, .ind-belt.on .chip, .bar-fill.low { animation: none; }
+    .blink, .ind-belt.on .chip, .bar-fill.low, #speed-display.over { animation: none; }
 }
 
 /* Toolbar */
@@ -324,6 +324,10 @@ input { font-family: inherit; }
 .swatch { width: 22px; height: 22px; border: 2px solid transparent; }
 .swatch[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 0 1px #000 inset; }
 .cp-reset { width: 100%; margin-top: 4px; }
+.cp-json { width: 100%; resize: none; padding: 6px; font: 10px monospace; color: var(--white); background: rgba(255, 255, 255, .06); border: 1px solid var(--line); user-select: text; }
+.cp-row { display: flex; gap: 6px; margin-top: 6px; }
+.cp-row .btn { flex: 1; }
+.swatch:focus-visible, .custom-panel input:focus-visible, .cp-json:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
 .music-panel::-webkit-scrollbar { width: 3px; }
 .music-panel::-webkit-scrollbar-thumb { background: rgba(38, 224, 138, .5); }
 .music-panel svg, .icon-btn svg, .btn svg, .tool svg, .tool-btn svg, .music-fab svg { width: 12px; height: 12px; fill: currentColor; display: block; margin: auto; }

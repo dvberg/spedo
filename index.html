@@ -97,6 +97,11 @@
             <div class="cp-group"><label class="cp-label" for="cp-speed">Peringatan speed <output id="cp-speed-val">80 MPH</output></label><input id="cp-speed" type="range" min="30" max="160" step="5" value="80"></div>
             <div class="cp-group"><label class="cp-label" for="cp-fuel">Peringatan fuel <output id="cp-fuel-val">20%</output></label><input id="cp-fuel" type="range" min="5" max="50" step="5" value="20"></div>
             <div class="cp-group"><label class="cp-label" for="cp-belt">Peringatan sabuk <output id="cp-belt-val">5 MPH</output></label><input id="cp-belt" type="range" min="0" max="40" step="5" value="5"></div>
+            <div class="cp-group">
+                <span class="cp-label">Pindahkan pengaturan</span>
+                <textarea id="cp-json" class="cp-json" rows="2" maxlength="2048" spellcheck="false" aria-label="JSON pengaturan" placeholder="Tempel JSON di sini lalu Impor"></textarea>
+                <div class="cp-row"><button id="btn-custom-export" class="btn" type="button">Ekspor</button><button id="btn-custom-import" class="btn" type="button">Impor</button></div>
+            </div>
             <button id="btn-custom-reset" class="btn btn-danger cp-reset" type="button">Reset ke bawaan</button>
         </section>
 

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Smoke test SAMC Speedo</title>
+<style>
+    body { margin: 0; font: 12px monospace; background: #fff; color: #000; }
+    iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 800px; border: 0; visibility: hidden; }
+    #out { position: relative; z-index: 2; white-space: pre; padding: 6px; }
+</style>
+</head>
+<body>
+<pre id="out"></pre>
+<script>
+/* Jalankan: buka tests/smoke.html (file:// butuh --allow-file-access-from-files). Hasil: baris PASS/FAIL per layout dan ringkasan di akhir. */
+const LAYOUTS = ['a', 'b', 'c', 'd', 'e', 'f'];
+const out = document.getElementById('out');
+let fails = 0, total = 0;
+const say = t => { out.textContent += t + '\n'; };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const key = (w, el, k, shift) => el.dispatchEvent(new w.KeyboardEvent('keydown', { key: k, shiftKey: !!shift, bubbles: true }));
+
+function load(layout) {
+    return new Promise(res => {
+        const f = document.createElement('iframe');
+        f.src = '../index.html?layout=' + layout;
+        f.onload = () => setTimeout(() => res(f), 300);
+        document.body.appendChild(f);
+    });
+}
+
+const inside = (w, r) => r.left >= -1 && r.top >= -1 && r.right <= w.innerWidth + 1 && r.bottom <= w.innerHeight + 1;
+
+async function run(layout) {
+    const checks = [];
+    const t = (name, ok) => { total++; if (!ok) fails++; checks.push((ok ? 'PASS ' : 'FAIL ') + name); };
+    let f = await load(layout);
+    let w = f.contentWindow, d = w.document;
+    const $ = id => d.getElementById(id);
+    const root = $('speedometer');
+    try {
+        w.localStorage.clear();
+        t('layout aktif', d.body.getAttribute('data-layout') === layout);
+
+        w.setSeatbelts(false); w.setSpeed(40);
+        t('speed 89 > 80 memicu over', $('speed-display').classList.contains('over'));
+        w.setSpeed(20);
+        t('speed 45 tidak over', !$('speed-display').classList.contains('over'));
+        w.setSpeed(40);
+        t('sabuk berkedip di 89 mph', $('indicator-seatbelt').classList.contains('blink'));
+        w.setSpeed(1);
+        t('sabuk diam di 2 mph', !$('indicator-seatbelt').classList.contains('blink'));
+        w.setFuel(0.15);
+        t('fuel 15% low', $('fuel-fill').classList.contains('low'));
+        w.setFuel(0.3);
+        t('fuel 30% tidak low', !$('fuel-fill').classList.contains('low'));
+
+        w.setSpeed(22); w.setSpeedMode(0);
+        t('mode KMH: 79 km/h < 80 tidak over', !$('speed-display').classList.contains('over'));
+        w.setSpeed(23);
+        t('mode KMH: 83 km/h > 80 over', $('speed-display').classList.contains('over'));
+        w.setSpeedMode(1); w.setSpeed(0);
+
+        root.focus();
+        const l0 = root.offsetLeft;
+        key(w, root, 'ArrowLeft');
+        t('panah kiri geser 8px', l0 - root.offsetLeft === 8);
+        for (let i = 0; i < 300; i++) key(w, root, 'ArrowRight', true);
+        t('clamp kanan', root.getBoundingClientRect().right <= w.innerWidth + 1);
+        for (let i = 0; i < 300; i++) key(w, root, 'ArrowUp', true);
+        t('clamp atas', root.getBoundingClientRect().top >= -1);
+        for (let i = 0; i < 300; i++) key(w, root, 'ArrowLeft', true);
+        t('clamp kiri', root.getBoundingClientRect().left >= -1);
+
+        for (let i = 0; i < 10; i++) $('btn-scale-up').click();
+        t('skala 2x tetap di layar', inside(w, root.getBoundingClientRect()));
+        t('slider ukuran sinkron', $('cp-size').value === '200');
+        for (let i = 0; i < 10; i++) $('btn-scale-down').click();
+
+        const corners = { 'kiri-atas': [0, 0], 'kanan-atas': [99999, 0], 'kiri-bawah': [0, 99999] };
+        for (const [name, [x, y]] of Object.entries(corners)) {
+            root.style.left = Math.min(x, w.innerWidth - root.offsetWidth) + 'px';
+            root.style.top = Math.min(y, w.innerHeight - root.offsetHeight) + 'px';
+            root.style.right = root.style.bottom = 'auto';
+            $('btn-music-toggle').click();
+            t('panel musik di ' + name, inside(w, $('music-panel').getBoundingClientRect()));
+            $('btn-music-close').click();
+            $('btn-custom').click();
+            t('panel pengaturan di ' + name, inside(w, $('custom-panel').getBoundingClientRect()));
+            $('btn-custom-close').click();
+        }
+
+        $('btn-custom').click();
+        t('fokus pindah ke panel', $('custom-panel').contains(d.activeElement));
+        d.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape' }));
+        t('escape menutup dan fokus kembali', $('custom-panel').classList.contains('hide') && d.activeElement === $('btn-custom'));
+
+        d.querySelector('[data-accent="#ffc247"]').click();
+        $('cp-speed').value = 100; $('cp-speed').dispatchEvent(new w.Event('input'));
+        t('aksen diterapkan', d.documentElement.style.getPropertyValue('--green') === '#ffc247');
+
+        f.contentWindow.location.reload();
+        await new Promise(r => { f.onload = () => setTimeout(r, 300); });
+        w = f.contentWindow; d = w.document;
+        t('aksen bertahan setelah reload', d.documentElement.style.getPropertyValue('--green') === '#ffc247');
+        t('ambang bertahan setelah reload', d.getElementById('cp-speed').value === '100' || d.getElementById('cp-speed-val').textContent.indexOf('100') === 0);
+        d.getElementById('btn-custom').click();
+        t('slider ambang dimuat dari simpanan', d.getElementById('cp-speed').value === '100');
+        d.getElementById('btn-custom-close').click();
+
+        const ex = d.getElementById('cp-json');
+        d.getElementById('btn-custom-export').click();
+        const exp = JSON.parse(ex.value);
+        t('ekspor berisi aksen dan ambang', exp.accent === '#ffc247' && exp.speed === 100);
+        d.getElementById('btn-custom-reset').click();
+        ex.value = JSON.stringify(exp);
+        d.getElementById('btn-custom-import').click();
+        t('impor memulihkan aksen', d.documentElement.style.getPropertyValue('--green') === '#ffc247');
+        ex.value = '{"accent":"javascript:x","speed":99999}';
+        d.getElementById('btn-custom-import').click();
+        t('impor menolak aksen aneh dan menjepit rentang', d.documentElement.style.getPropertyValue('--green') === '#ffc247' && d.getElementById('cp-speed').value === '160');
+        d.getElementById('btn-custom-reset').click();
+        t('reset mengembalikan aksen', d.documentElement.style.getPropertyValue('--green') === '#26e08a');
+
+        w.SAMC.hud.applyRemote({ speed: 'abc', rpm: 99, fuel: -5, health: 'x', gear: {}, engine: 'false' });
+        const s = w.SAMC.hud.getState();
+        t('data sync aneh dinormalisasi', s.speed === 0 && s.rpm <= 1.1 && s.fuel >= 0 && s.fuel <= 1 && s.health >= 0 && s.health <= 1 && Number.isFinite(s.gear) && s.engine === false);
+
+        w.SAMC.hud.setLayout('b'); w.SAMC.hud.setLayout(layout);
+        await wait(100);
+        t('HUD tetap di layar setelah ganti layout', inside(w, w.document.getElementById('speedometer').getBoundingClientRect()));
+    } catch (e) {
+        t('tidak ada exception: ' + e.message, false);
+    }
+    const bad = checks.filter(c => c.startsWith('FAIL'));
+    say('layout ' + layout.toUpperCase() + ': ' + (checks.length - bad.length) + '/' + checks.length + ' lolos');
+    bad.forEach(c => say('  ' + c));
+    f.remove();
+}
+
+(async () => {
+    for (const l of LAYOUTS) await run(l);
+    say('\nRINGKASAN: ' + (total - fails) + '/' + total + ' lolos, ' + fails + ' gagal');
+    document.title = fails ? 'FAIL' : 'PASS';
+})();
+</script>
+</body>
+</html>
