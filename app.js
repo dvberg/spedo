@@ -235,6 +235,8 @@ SAMC.config = {
         root.setProperty('--amber', custom.accent);
         root.setProperty('--green', custom.accent);
         root.setProperty('--ui-opacity', custom.opacity / 100);
+        if (custom.accent.toLowerCase() === customDefaults.accent) root.removeProperty('--f-rgb');
+        else root.setProperty('--f-rgb', [1, 3, 5].map(i => parseInt(custom.accent.substr(i, 2), 16)).join(', '));
         const $ = id => document.getElementById(id);
         $('cp-size').value = Math.round(layout.scale * 100);
         $('cp-size-val').textContent = Math.round(layout.scale * 100) + '%';
@@ -749,7 +751,7 @@ SAMC.config = {
         if (!tracks.length) {
             const e = document.createElement('div');
             e.className = 'music-empty';
-            e.textContent = 'Belum ada lagu. Tekan ＋ untuk tempel link audio atau YouTube.';
+            e.textContent = 'Belum ada lagu. Tekan ï¼‹ untuk tempel link audio atau YouTube.';
             list.appendChild(e);
             return;
         }
@@ -938,7 +940,7 @@ SAMC.config = {
             spUri = t.uri;
             spEnded = false;
             meta();
-            note('Memuat Spotify…');
+            note('Memuat Spotifyâ€¦');
             ensureSP()
                 .then(() => spLoad(t.uri))
                 .then(() => { spCtrl.play(); note('Spotify'); })
@@ -948,7 +950,7 @@ SAMC.config = {
             active = 'yt';
             ytCurrent = t.id;
             meta();
-            note('Memuat YouTube…');
+            note('Memuat YouTubeâ€¦');
             ensureYT()
                 .then(() => { ytPlayer.loadVideoById(t.id); note('YouTube'); })
                 .catch(() => note('YouTube gagal dimuat, cek koneksi'));
@@ -957,9 +959,9 @@ SAMC.config = {
             active = 'audio';
             ytCurrent = null;
             meta();
-            note('Memuat audio…');
+            note('Memuat audioâ€¦');
             audio.src = t.url;
-            audio.play().then(() => note('Direct audio')).catch(() => note('Tekan ▶ atau periksa URL'));
+            audio.play().then(() => note('Direct audio')).catch(() => note('Tekan â–¶ atau periksa URL'));
         }
         playBtn();
         progress();
