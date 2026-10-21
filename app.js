@@ -5,6 +5,7 @@ SAMC.config = {
         layout: 'spedo_settings',
         variant: 'spedo_layout',
         syncCode: 'spedo_sync_code',
+        custom: 'spedo_custom',
         playlist: 'samc_music_audio_playlist_v2'
     },
     peerPrefix: 'samc-spedo-',
@@ -180,10 +181,14 @@ SAMC.config = {
         return out;
     }
 
-    function setBar(bar, value) {
+    const custom = { accent: '#26e08a', opacity: 100, speed: 80, fuel: 20, belt: 5 };
+    const customDefaults = Object.assign({}, custom);
+
+    function setBar(bar, value, lowAt) {
+        const low = lowAt === undefined ? 0.2 : lowAt;
         bar.fill.style.width = (value * 100) + '%';
-        bar.fill.classList.toggle('warn', value < 0.5 && value >= 0.2);
-        bar.fill.classList.toggle('low', value < 0.2);
+        bar.fill.classList.toggle('warn', value < 0.5 && value >= low);
+        bar.fill.classList.toggle('low', value < low);
         bar.text.textContent = Math.round(value * 100) + '%';
     }
 
@@ -196,7 +201,8 @@ SAMC.config = {
         SAMC.gauge.setSpeedMph(mph);
         SAMC.gauge.setRpm(state.rpm);
         SAMC.gauge.setGear(state.gear);
-        setBar(el.fuel, state.fuel);
+        el.speed.classList.toggle('over', mph > custom.speed);
+        setBar(el.fuel, state.fuel, custom.fuel / 100);
         setBar(el.health, state.health);
         el.engine.classList.toggle('on', state.engine);
         el.lights.classList.toggle('on', state.headlights > 0);
@@ -205,7 +211,123 @@ SAMC.config = {
         el.right.classList.toggle('on', state.rightIndicator);
         el.belt.classList.toggle('on', !state.seatbelt);
         el.belt.classList.toggle('belted', state.seatbelt);
-        el.belt.classList.toggle('blink', !state.seatbelt);
+        el.belt.classList.toggle('blink', !state.seatbelt && mph >= custom.belt);
+    }
+
+    function saveCustom() {
+        try { localStorage.setItem(cfg.storage.custom, JSON.stringify(custom)); } catch (_) {}
+    }
+
+    function loadCustom() {
+        try {
+            const s = JSON.parse(localStorage.getItem(cfg.storage.custom));
+            if (!s) return;
+            if (/^#[0-9a-f]{6}$/i.test(s.accent)) custom.accent = s.accent;
+            custom.opacity = clamp(num(s.opacity, 100), 40, 100);
+            custom.speed = clamp(num(s.speed, 80), 30, 160);
+            custom.fuel = clamp(num(s.fuel, 20), 5, 50);
+            custom.belt = clamp(num(s.belt, 5), 0, 40);
+        } catch (_) {}
+    }
+
+    function applyCustom() {
+        const root = document.documentElement.style;
+        root.setProperty('--amber', custom.accent);
+        root.setProperty('--green', custom.accent);
+        root.setProperty('--ui-opacity', custom.opacity / 100);
+        const $ = id => document.getElementById(id);
+        $('cp-size').value = Math.round(layout.scale * 100);
+        $('cp-size-val').textContent = Math.round(layout.scale * 100) + '%';
+        $('cp-opacity').value = custom.opacity;
+        $('cp-opacity-val').textContent = custom.opacity + '%';
+        $('cp-speed').value = custom.speed;
+        $('cp-speed-val').textContent = custom.speed + ' MPH';
+        $('cp-fuel').value = custom.fuel;
+        $('cp-fuel-val').textContent = custom.fuel + '%';
+        $('cp-belt').value = custom.belt;
+        $('cp-belt-val').textContent = custom.belt + ' MPH';
+        document.querySelectorAll('#cp-swatches .swatch').forEach(b =>
+            b.setAttribute('aria-pressed', String(b.dataset.accent.toLowerCase() === custom.accent.toLowerCase())));
+        render();
+    }
+
+    function clampToViewport() {
+        const r = el.root.getBoundingClientRect();
+        if (!r.width || layout.left === null) return;
+        const dx = Math.min(Math.max(r.left, 0), Math.max(0, innerWidth - r.width)) - r.left;
+        const dy = Math.min(Math.max(r.top, 0), Math.max(0, innerHeight - r.height)) - r.top;
+        if (!dx && !dy) return;
+        layout.left += dx;
+        layout.top += dy;
+        applyLayout();
+        saveLayout();
+    }
+
+    function placeFloating(panel) {
+        panel.style.left = panel.style.right = panel.style.top = panel.style.bottom = '';
+        panel.style.transformOrigin = '';
+        const r = el.root.getBoundingClientRect();
+        const p = panel.getBoundingClientRect();
+        const s = layout.scale || 1;
+        const above = r.top >= innerHeight - r.bottom;
+        panel.style.top = above ? 'auto' : 'calc(100% + 8px)';
+        panel.style.bottom = above ? 'calc(100% + 8px)' : 'auto';
+        const room = above ? r.top : innerHeight - r.bottom;
+        panel.style.maxHeight = Math.max(160, room / s - 16) + 'px';
+        const overflowRight = r.left + p.width > innerWidth;
+        panel.style.left = overflowRight ? 'auto' : '0';
+        panel.style.right = overflowRight ? '0' : 'auto';
+    }
+
+    function setupCustom() {
+        const $ = id => document.getElementById(id);
+        const panel = $('custom-panel'), btn = $('btn-custom');
+        const toggle = open => {
+            panel.classList.toggle('hide', !open);
+            btn.setAttribute('aria-expanded', String(open));
+            if (open) { applyCustom(); placeFloating(panel); }
+        };
+        btn.addEventListener('click', () => toggle(panel.classList.contains('hide')));
+        $('btn-custom-close').addEventListener('click', () => toggle(false));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') toggle(false); });
+        $('cp-swatches').addEventListener('click', e => {
+            const b = e.target.closest('.swatch');
+            if (!b) return;
+            custom.accent = b.dataset.accent;
+            saveCustom(); applyCustom();
+        });
+        const bind = (id, key) => $(id).addEventListener('input', e => {
+            custom[key] = Number(e.target.value);
+            saveCustom(); applyCustom();
+        });
+        bind('cp-opacity', 'opacity'); bind('cp-speed', 'speed'); bind('cp-fuel', 'fuel'); bind('cp-belt', 'belt');
+        $('cp-size').addEventListener('input', e => { setScale(Number(e.target.value) / 100); });
+        $('btn-custom-reset').addEventListener('click', () => {
+            Object.assign(custom, customDefaults);
+            saveCustom(); setScale(1); applyCustom();
+        });
+    }
+
+    function setupKeyboard() {
+        el.root.setAttribute('tabindex', '0');
+        el.root.addEventListener('keydown', e => {
+            if (e.target !== el.root) return;
+            const step = e.shiftKey ? 24 : 8;
+            const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+            if (!d) return;
+            e.preventDefault();
+            const r = el.root.getBoundingClientRect();
+            if (layout.left === null) {
+                layout.left = el.root.offsetLeft;
+                layout.top = el.root.offsetTop;
+            }
+            layout.left += d[0];
+            layout.top += d[1];
+            applyLayout();
+            clampToViewport();
+            saveLayout();
+        });
+        addEventListener('resize', clampToViewport);
     }
 
     function setState(patch, relay) {
@@ -253,7 +375,10 @@ SAMC.config = {
     function setScale(s) {
         layout.scale = Math.round(clamp(s, cfg.scale.min, cfg.scale.max) * 10) / 10;
         applyLayout();
+        clampToViewport();
         saveLayout();
+        const sz = document.getElementById('cp-size');
+        if (sz) { sz.value = Math.round(layout.scale * 100); document.getElementById('cp-size-val').textContent = sz.value + '%'; }
     }
 
     function resetLayout() {
@@ -310,6 +435,10 @@ SAMC.config = {
             API.setLayout(new URLSearchParams(location.search).get('layout') || saved || cfg.defaultLayout);
             SAMC.gauge.init();
             setupDrag();
+            loadCustom();
+            setupCustom();
+            setupKeyboard();
+            applyCustom();
 
             $('btn-scale-up').addEventListener('click', () => setScale(layout.scale + cfg.scale.step));
             $('btn-scale-down').addEventListener('click', () => setScale(layout.scale - cfg.scale.step));
@@ -325,6 +454,7 @@ SAMC.config = {
         },
 
         setState,
+        placePanel: placeFloating,
         getState: () => Object.assign({}, state),
         reset() { setState(normalize({ speed: 0, rpm: 0, fuel: 1, health: 1, gear: 0, engine: false, headlights: 0, left: false, right: false, seatbelt: false, odometer: 0 }), false); },
         setVisible(v) { el.root.classList.toggle('hide', !v); },
@@ -873,6 +1003,7 @@ SAMC.config = {
 
         $('btn-music-toggle').addEventListener('click', () => {
             const open = panel.classList.toggle('hide') === false;
+            if (open && SAMC.hud.placePanel) SAMC.hud.placePanel(panel);
             $('btn-music-toggle').setAttribute('aria-expanded', String(open));
         });
         $('btn-music-close').addEventListener('click', () => panel.classList.add('hide'));

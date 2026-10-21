@@ -21,11 +21,21 @@ Pilih layout lewat `?layout=a` sampai `?layout=f`. Pilihan disimpan di localStor
 - `e`: Ghost, melayang tanpa panel
 - `f`: LCD transparan, bar RPM vertikal dan latar speed gradasi
 
+## Pengaturan
+
+Tombol slider di toolbar HUD membuka panel pengaturan: warna aksen, ukuran, opasitas, dan ambang peringatan (speed, fuel, sabuk). Disimpan di localStorage (`spedo_custom`) dan bisa direset.
+
+- Speed melewati ambang: angka merah dan berkedip.
+- Fuel di bawah ambang: bar merah.
+- Sabuk belum dipasang dan speed di atas ambang: ikon sabuk berkedip.
+- Fokus HUD (Tab) lalu panah untuk menggeser 8px, Shift 24px. HUD dijaga tetap di dalam layar.
+- Panel musik dan pengaturan muncul di sisi yang lebih lega.
+
 ## Satuan
 
 - Speed: meter per detik (m/s). Bisa diberi `speedUnit: 'km/h'`, `'kmh'`, `'kph'`, atau `'mph'` agar dikonversi otomatis.
-- RPM: 0â€“1.
-- Fuel dan health: 0â€“1, atau 0â€“100 (dikonversi otomatis).
+- RPM: 0Ã¢â‚¬â€œ1.
+- Fuel dan health: 0Ã¢â‚¬â€œ1, atau 0Ã¢â‚¬â€œ100 (dikonversi otomatis).
 - Odometer: mil.
 
 ## Fungsi global
@@ -35,9 +45,9 @@ Semua fungsi ini tersedia di `window`:
 ```javascript
 setEngine(true);
 setSpeed(25);          // m/s
-setRPM(0.55);          // 0â€“1
-setFuel(0.75);         // 0â€“1
-setHealth(0.9);        // 0â€“1
+setRPM(0.55);          // 0Ã¢â‚¬â€œ1
+setFuel(0.75);         // 0Ã¢â‚¬â€œ1
+setHealth(0.9);        // 0Ã¢â‚¬â€œ1
 setGear(3);
 setHeadlights(1);      // 0 = mati, 1 = nyala
 setLeftIndicator(true);
@@ -75,7 +85,7 @@ Action yang dikenali: `vehicle`, `speedometer`, `update`, `telemetry`, dan `visi
 
 ## Musik
 
-Panel musik (tombol â™« di kiri atas) mendukung:
+Panel musik (tombol Ã¢â„¢Â« di kiri atas) mendukung:
 - Link YouTube
 - Link audio langsung
 - Link Spotify (ditampilkan lewat embed)
